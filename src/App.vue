@@ -2,7 +2,7 @@
 
 <template lang="pug">
 h4 Здесь будет timeline
-p laksjdlkajs
+p Это изменения для починки css.
 </template>
 
 <style scoped lang="scss">
