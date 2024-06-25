@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
+// import { RouterLink, RouterView } from 'vue-router'
 import HelloWorld from './components/HelloWorld.vue'
 </script>
 
 <template lang="pug">
 header
-	img(class="logo" src="@/assets/logo.svg" width="125" height="125")
+	img(class='logo' src='@/assets/logo.svg' width='125' height='125')
 	.wrapper
-		HelloWorld(msg="You did it!")
-		q-btn(unelevated color="primary" label="Отмена" @click="action") 
+		HelloWorld(msg='You did it!')
+		q-btn(unelevated color='primary' label='Отмена' @click='') 
 
-RouterView
+// RouterView
 </template>
 
 <style scoped lang="scss">

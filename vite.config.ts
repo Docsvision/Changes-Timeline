@@ -22,4 +22,19 @@ export default defineConfig({
 			'@': fileURLToPath(new URL('./src', import.meta.url)),
 		},
 	},
+	build: {
+		minify: true,
+	},
+	server: {
+		proxy: {
+			'^/.*/timeline.min.js': {
+				target: 'http://127.0.0.1:5173',
+				rewrite: () => '/timeline.js',
+			},
+			'^/timeline/': {
+				target: 'https://help.docsvision.com',
+				changeOrigin: true,
+			},
+		},
+	},
 })
