@@ -27,6 +27,10 @@ export default defineConfig({
 	},
 	server: {
 		proxy: {
+			'^/.*/timeline.min.css': {
+				target: 'http://localhost:5173',
+				rewrite: () => '/src/timeline.dev.css',
+			},
 			'^/.*/timeline.min.js': {
 				target: 'http://localhost:5173',
 				rewrite: () => '/src/timeline.dev.js',
