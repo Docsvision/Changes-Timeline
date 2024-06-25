@@ -29,9 +29,9 @@ export default defineConfig({
 		proxy: {
 			'^/.*/timeline.min.js': {
 				target: 'http://localhost:5173',
-				rewrite: () => '/timeline.js',
+				rewrite: () => '/src/timeline.dev.js',
 			},
-			'^/((_|api|timeline)/|site-navigation-data.js)': {
+			'^/(?!__|@|node_modules|src).*': {
 				target: 'https://doc-online-vdv.digdes.com',
 				changeOrigin: true,
 			},
