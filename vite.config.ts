@@ -28,11 +28,11 @@ export default defineConfig({
 	server: {
 		proxy: {
 			'^/.*/timeline.min.js': {
-				target: 'http://127.0.0.1:5173',
+				target: 'http://localhost:5173',
 				rewrite: () => '/timeline.js',
 			},
-			'^/timeline/': {
-				target: 'https://help.docsvision.com',
+			'^/((_|api|timeline)/|site-navigation-data.js)': {
+				target: 'https://doc-online-vdv.digdes.com',
 				changeOrigin: true,
 			},
 		},
