@@ -26,7 +26,7 @@ function App() {
   const [searchValue, setSearchValue] = useState('');
   const [allData, setAllData] = useState<Item[]>([]);
 
-  const searchTimeoutRef = useRef<null | number>(null);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const products = [
     'Документация',
