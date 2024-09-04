@@ -7,9 +7,12 @@ import { TimelineIcon } from './Icon';
 type Item = {
   id: number,
   productId: number,
+  fileVersion: string,
   changes: {
     title: string,
-    description: string
+    description: string,
+    fileVersion: string,
+    type: number
   }[],
   metadata: {
     publishDate: string
@@ -29,6 +32,8 @@ function App() {
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const products = [
+    '5.5',
+    '6.1',
     'Документация',
     'Платформа',
     'Web-клиент',
@@ -49,9 +54,9 @@ function App() {
   ];
 
   const productFilterMap: { [key: string]: number[] } = {
-    'Документация': [7],
+    'Документация': [99],
     'Платформа': [1, 14],
-    'Web-клиент': [16],
+    'Web-клиент': [7, 16],
     'Управление документами': [4, 12],
     'Конструктор согласований': [5, 10],
     'Базовые объекты': [3, 11],
@@ -66,7 +71,8 @@ function App() {
     'Модуль интеграции с УЦ Контур': [24, 32],
     'Управление архивом': [27, 30, 33],
     'Сервис конвертации файлов': [29, 31],
-
+    '5.5': [1, 2, 3, 4, 5, 6, 7, 8, 9, 20, 23, 24, 25, 26, 27, 31, 33],
+    '6.1': [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 28, 29, 30, 32],
   };
 
   const productIconMap: { [key: string]: string } = {
@@ -90,42 +96,42 @@ function App() {
   };
 
   const titles: { [key: number]: string } = {
-    1: 'Платформа 5.5.5',
-    2: 'Windows-клиент 5.5.4',
-    3: 'Базовые объекты 5.5.5',
-    4: 'Управление документами 5.5.4',
-    5: 'Конструктор согласований 5.5.3',
-    6: 'Служба фоновых операций 5.5.2',
-    7: 'Документация Web-клиент 5.5.17',
-    8: 'Консоль управления 5.5.1',
-    9: 'Модуль интеграции с операторами ЭДО 5.5.4',
-    10: 'Конструктор согласований 6.1',
-    11: 'Базовые объекты 6.1',
-    12: 'Управление документами 6.1',
-    13: 'Консоль управления 6.1',
-    14: 'Платформа 6.1',
-    15: 'Делопроизводство 4.5',
-    16: 'Web-клиент 6.1',
-    17: 'Windows-клиент 6.1',
-    18: 'Служба фоновых операций 6.1',
-    19: 'Управление процессами 6.1',
-    20: 'Модуль интеграции с операторами ЭДО 5.5.5',
-    21: 'Модуль интеграции с операторами ЭДО 6.1',
-    22: "Менеджер решений 6.1",
-    23: "Модуль интеграции с реестром МЧД 5.5.1",
-    24: "Модуль интеграции с УЦ Контур 5.5.1",
-    25: "Менеджер решений 5.5.2",
-    26: "Управление процессами 5.5.3",
-    27: "Управление архивом 5.5.1",
-    28: "Модуль интеграции с реестром МЧД 6.1",
-    29: "Сервис конвертации файлов 6.1",
-    30: "Управление архивом 6.1",
-    31: "Сервис конвертации файлов 5.5.1",
-    32: "Модуль интеграции с УЦ Контур 6.1",
-    33: "Управление архивом 5.5.2",
+    1: 'Платформа',
+    2: 'Windows-клиент',
+    3: 'Базовые объекты',
+    4: 'Управление документами',
+    5: 'Конструктор согласований',
+    6: 'Служба фоновых операций',
+    7: 'Web-клиент',
+    8: 'Консоль управления',
+    9: 'Модуль интеграции с операторами ЭДО',
+    10: 'Конструктор согласований',
+    11: 'Базовые объекты',
+    12: 'Управление документами',
+    13: 'Консоль управления',
+    14: 'Платформа',
+    15: 'Делопроизводство',
+    16: 'Web-клиент',
+    17: 'Windows-клиент',
+    18: 'Служба фоновых операций',
+    19: 'Управление процессами',
+    20: 'Модуль интеграции с операторами ЭДО',
+    21: 'Модуль интеграции с операторами ЭДО',
+    22: "Менеджер решений",
+    23: "Модуль интеграции с реестром МЧД",
+    24: "Модуль интеграции с УЦ Контур",
+    25: "Менеджер решений",
+    26: "Управление процессами",
+    27: "Управление архивом",
+    28: "Модуль интеграции с реестром МЧД",
+    29: "Сервис конвертации файлов",
+    30: "Управление архивом",
+    31: "Сервис конвертации файлов",
+    32: "Модуль интеграции с УЦ Контур",
+    33: "Управление архивом",
   };
   const getTitle = (id: number) => titles[id];
-  
+
   const findIconIdByProductId = (productId: number): string | undefined => {
     for (const [productName, productIds] of Object.entries(productFilterMap)) {
       if (productIds.includes(productId)) {
@@ -150,13 +156,13 @@ function App() {
     setAllData(fetchedData);
     return filterSearchResults(fetchedData, searchQuery);
   }
-  
+
   const filterSearchResults = (items: Item[], query: string): Item[] => {
     return items
       .map(item => {
         const matchingChanges = item.changes.filter(change =>
-          change.description.toLowerCase().includes(query.toLowerCase())
-        );
+          change.description.toLowerCase().includes(query.toLowerCase()) ||
+          change.title.toLowerCase().includes(query.toLowerCase()));
         return matchingChanges.length ? { ...item, changes: matchingChanges } : null;
       })
       .filter(Boolean) as Item[];
@@ -168,7 +174,6 @@ function App() {
         ? filterSearchResults(allData, searchQuery)
         : await fetchDataAndFilter(searchQuery);
 
-      setActiveFilters([]);
       setShowButton(false);
       setData(filteredItems.length ? filteredItems : []);
     } else {
@@ -263,7 +268,7 @@ function App() {
         <h1 className='timeline__header'>История изменений</h1>
         <div className="timeline__search">
           <div className='timeline__search-input-wrapper'>
-            <input placeholder='Поиск по всем изменениям'
+            <input placeholder='Поиск по изменениям'
               type="text"
               className='timeline__search-input'
               onChange={(e) => setSearchValue(e.target.value)}
@@ -285,24 +290,63 @@ function App() {
 
               <div className='timeline__content'>
                 <div className='timeline__title'>
-                  {getTitle(item.productId)}
+                  {`${getTitle(item.productId)} ${item.fileVersion}`}
                 </div>
                 <div className='timeline__text'>
-                  <ul>{item.changes.map((el, index) => (
-                    <li key={index} className='timeline__change-item'>
-                      <div className='timeline__change-title'>{el.title}</div>
-                      <div className='timeline__change-text'>{el.description}</div>
-                    </li>
-                  ))}
+                  <ul>
+                    {item.changes.filter(el => el.type === 1).length > 0 && (
+                      <>
+                        <li className='timeline__section-title timeline__section-title-error'>Исправленные ошибки</li>
+                        {item.changes
+                          .filter(el => el.type === 1)
+                          .map((el, index) => (
+                            <li key={`error-${index}`} className='timeline__change-item'>
+                              <div className='timeline__change-title'>{el.title}</div>
+                              <div className='timeline__change-text'>{el.description}</div>
+                            </li>
+                          ))}
+                      </>
+                    )}
+
+                    {item.changes.filter(el => el.type === 3).length > 0 && (
+                      <>
+                        <li className='timeline__section-title timeline__section-title-update'>Функциональные изменения</li>
+                        {item.changes
+                          .filter(el => el.type === 3)
+                          .map((el, index) => (
+                            <li key={`update-${index}`} className='timeline__change-item'>
+                              <div className='timeline__change-title'>{el.title}</div>
+                              <div className='timeline__change-text'>{el.description}</div>
+                            </li>
+                          ))}
+                      </>
+                    )}
+
+                    {item.changes.filter(el => el.type !== 1 && el.type !== 3).length > 0 && (
+                      <>
+                        <li className='timeline__section-title timeline__section-title-other'>Изменения API</li>
+                        {item.changes
+                          .filter(el => el.type !== 1 && el.type !== 3)
+                          .map((el, index) => (
+                            <li key={`other-${index}`} className='timeline__change-item'>
+                              <div className='timeline__change-title'>{el.title}</div>
+                              <div className='timeline__change-text'>{el.description}</div>
+                            </li>
+                          ))}
+                      </>
+                    )}
                   </ul>
                 </div>
               </div>
             </li>
           ))}
         </ul>
-        {data.length > 0 && !showButton && activeFilters.length === 0 && (
-          <div className='timeline__end'></div>
-        )}
+        {data.length > 0 && !showButton && (
+          (activeFilters.length > 0 && filteredData.length > 0) || // Когда есть активные фильтры и отфильтрованные данные
+          (activeFilters.length === 0) // Или когда нет активных фильтров
+        ) && (
+            <div className='timeline__end'></div>
+          )}
       </div>
       <div className="timeline__button-wrapper">
         {
@@ -313,7 +357,9 @@ function App() {
           )
         }
       </div>
-      {data.length === 0 && <div className='message-container'>Изменения не найдены</div>}
+      {!showButton && (data.length === 0 || filteredData.length === 0) && (
+        <div className='message-container'>Изменений не было.</div>
+      )}
     </div >
   );
 }
