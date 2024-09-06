@@ -186,7 +186,6 @@ function App() {
       setSearchValue('');
       setData(allData.slice(0, INITIAL_LIMIT))
       setShowButton(true)
-      setActiveFilters([])
     }
   }
   const handleFilterClick = (filter: string) => {
@@ -196,7 +195,7 @@ function App() {
   }
 
   const filteredData = activeFilters.length
-  ? data.filter(item => {
+    ? data.filter(item => {
       // Проверяем, выбраны ли версии "5.5" и/или "6.1"
       const versionFilters = activeFilters.filter(filter => filter === '5.5' || filter === '6.1');
 
@@ -216,7 +215,7 @@ function App() {
         return activeFilters.some(filter => productFilterMap[filter]?.includes(item.productId));
       }
     })
-  : data;
+    : data;
 
   const getData = async (initialLimit?: number) => {
     try {
@@ -285,11 +284,13 @@ function App() {
         <h1 className='timeline__header'>История изменений</h1>
         <div className="timeline__search">
           <div className='timeline__search-input-wrapper'>
+            <div className='timeline__search-icon'></div>
             <input placeholder='Поиск по изменениям'
               type="text"
               className='timeline__search-input'
               onChange={(e) => setSearchValue(e.target.value)}
               value={searchValue} />
+            {searchValue && <div onClick={handleClearSearch} className='timeline__search-clear-btn'></div>}
           </div>
         </div>
         <ul className="timeline__list">

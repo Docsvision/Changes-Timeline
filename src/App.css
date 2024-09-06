@@ -58,8 +58,39 @@
 }
 
 .timeline__search-input {
-	width: 175px;
+	width: 140px;
+	padding: 1px 25px;
 }
+
+.timeline__search-icon{
+	background-image: url('../src/icons/magnify.svg');
+	background-repeat: no-repeat;
+	background-position: center;
+	width: 20px;
+	height: 20px;
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+}
+
+.timeline__search-clear-btn{
+	background-image: url('../src/icons/close-circle-outline.svg');
+	background-repeat: no-repeat;
+	background-position: center;
+	width: 20px;
+	height: 20px;
+	position: absolute;
+	top: 50%;
+	right: 0px;
+	transform: translateY(-50%);
+	cursor: pointer;
+	opacity: 0.6;
+	transition: opacity 0.3s ease;
+}
+
+.timeline__search-clear-btn:hover {
+	opacity: 1;
+  }
 
 .timeline__list {
 	padding: 0;
