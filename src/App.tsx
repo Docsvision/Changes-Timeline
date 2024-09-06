@@ -196,10 +196,27 @@ function App() {
   }
 
   const filteredData = activeFilters.length
-    ? data.filter(item => {
-      return activeFilters.some(filter => productFilterMap[filter]?.includes(item.productId));
+  ? data.filter(item => {
+      // Проверяем, выбраны ли версии "5.5" и/или "6.1"
+      const versionFilters = activeFilters.filter(filter => filter === '5.5' || filter === '6.1');
+
+      if (versionFilters.length === 1) {
+        // Если выбрана только одна версия (например, "5.5" или "6.1")
+        const versionFilter = versionFilters[0];
+        const productFilters = activeFilters.filter(filter => filter !== '5.5' && filter !== '6.1');
+
+        // Фильтруем элементы, которые соответствуют выбранной версии и другим активным фильтрам
+        return (
+          productFilterMap[versionFilter]?.includes(item.productId) &&
+          (productFilters.length === 0 || productFilters.some(filter => productFilterMap[filter]?.includes(item.productId)))
+        );
+      } else {
+        // Если выбраны обе версии "5.5" и "6.1" или ни одна версия не выбрана,
+        // применяем обычную логику фильтрации по продуктам
+        return activeFilters.some(filter => productFilterMap[filter]?.includes(item.productId));
+      }
     })
-    : data;
+  : data;
 
   const getData = async (initialLimit?: number) => {
     try {
@@ -358,7 +375,7 @@ function App() {
         }
       </div>
       {!showButton && (data.length === 0 || filteredData.length === 0) && (
-        <div className='message-container'>Изменений не было.</div>
+        <div className='message-container'>Не найдено.</div>
       )}
     </div >
   );
