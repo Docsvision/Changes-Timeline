@@ -4,20 +4,35 @@ import { ru } from 'date-fns/locale';
 import './App.css'
 import { TimelineIcon } from './Icon';
 
-type Item = {
+export type Item = {
   id: number,
   productId: number,
   fileVersion: string,
+  type: number,
   changes: {
     title: string,
     description: string,
     fileVersion: string,
-    type: number
+    type: number,
+    detailed?: string
   }[],
   metadata: {
-    publishDate: string
+    publishDate: string,
+    isPublic: boolean
   }
 }
+
+type Product = {
+  id: number;
+  name: string;
+  version: string;
+  alias: string;
+}
+
+type ProductFilterMap = {
+  [key: string]: number[];
+};
+
 const INITIAL_LIMIT = 100;
 
 function App() {
@@ -28,52 +43,74 @@ function App() {
   const [data, setData] = useState<Item[]>([]);
   const [searchValue, setSearchValue] = useState('');
   const [allData, setAllData] = useState<Item[]>([]);
+  const [serverData, setServerData] = useState<Product[]>([])
+  const [expandedGroups, setExpandedGroups] = useState<{ [itemId: number]: { [groupType: number]: boolean } }>({});
+  const [expandAll, setExpandAll] = useState(false);
+  const [expandedDetails, setExpandedDetails] = useState<Record<number, boolean>>({});
+
 
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const products = [
-    '5.5',
-    '6.1',
-    'Документация',
-    'Платформа',
-    'Web-клиент',
-    'Управление документами',
-    'Конструктор согласований',
-    'Базовые объекты',
-    'Windows-клиент',
-    'Служба фоновых операций',
-    'Консоль управления',
-    'Модуль интеграции с операторами ЭДО',
-    'Делопроизводство',
-    'Управление процессами',
-    'Менеджер решений',
-    'Модуль интеграции с реестром МЧД',
-    'Модуль интеграции с УЦ Контур',
-    'Управление архивом',
-    'Сервис конвертации файлов'
-  ];
+  const additionalProducts = ['5.5', '6.1', 'Документация'];
 
-  const productFilterMap: { [key: string]: number[] } = {
-    'Документация': [99],
-    'Платформа': [1, 14],
-    'Web-клиент': [7, 16],
-    'Управление документами': [4, 12],
-    'Конструктор согласований': [5, 10],
-    'Базовые объекты': [3, 11],
-    'Windows-клиент': [2, 17],
-    'Служба фоновых операций': [6, 18],
-    'Консоль управления': [8, 13],
-    'Модуль интеграции с операторами ЭДО': [9, 20, 21],
-    'Делопроизводство': [15],
-    'Управление процессами': [19, 26],
-    'Менеджер решений': [22, 25],
-    'Модуль интеграции с реестром МЧД': [23, 28],
-    'Модуль интеграции с УЦ Контур': [24, 32],
-    'Управление архивом': [27, 30, 33],
-    'Сервис конвертации файлов': [29, 31],
-    '5.5': [1, 2, 3, 4, 5, 6, 7, 8, 9, 20, 23, 24, 25, 26, 27, 31, 33],
-    '6.1': [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 28, 29, 30, 32],
+  // Функция для генерации константы products
+  const generateProducts = (data: any[]) => {
+    const productNames = data.map(item => item.name);
+    return [...new Set([...additionalProducts, ...productNames])];
   };
+
+  // Функция для генерации titles
+  const generateTitles = (data: Product[]): { [key: number]: string } => {
+    const titleMap: { [key: number]: string } = {};
+    data.forEach(item => {
+      titleMap[item.id] = item.name;
+    });
+    return titleMap;
+  };
+
+  // Функция для генерации productFilterMap с автоматическим распределением версий
+  const generateProductFilterMap = (data: Product[]): ProductFilterMap => {
+    const map: ProductFilterMap = {};
+
+    // Обрабатываем серверные данные и группируем по именам продуктов
+    data.forEach(item => {
+      // Группировка по продуктам
+      if (!map[item.name]) {
+        map[item.name] = [];
+      }
+      map[item.name].push(item.id);
+    });
+
+    // Создаём отдельные массивы для версий 5.5, 6.1 и документации
+    const version5_5: number[] = [];
+    const version6_1: number[] = [];
+    const documentation = [99]; // Заглушка для документации
+
+    // Проверка версии для автоматического добавления в '5.5' или '6.1'
+    data.forEach(item => {
+      if (item.version.startsWith('5')) {
+        version5_5.push(item.id);
+      } else if (item.version.startsWith('6')) {
+        version6_1.push(item.id);
+      }
+    });
+
+    // Добавляем версии 5.5, 6.1 и документацию в конце
+    map['5.5'] = version5_5;
+    map['6.1'] = version6_1;
+    map['Документация'] = documentation;
+
+    return map;
+  };
+
+
+  const products = generateProducts(serverData)
+  const productFilterMap = generateProductFilterMap(serverData)
+  const titles = generateTitles(serverData);
+  console.log(productFilterMap);
+
+
+  const getTitle = (id: number) => titles[id];
 
   const productIconMap: { [key: string]: string } = {
     'Документация': 'icon-nav-component-webclient',
@@ -86,7 +123,7 @@ function App() {
     'Служба фоновых операций': 'icon-nav-component-workerservice',
     'Консоль управления': 'icon-nav-component-mgmtconsole',
     'Модуль интеграции с операторами ЭДО': 'icon-nav-component-edi',
-    'Делопроизводство': 'icon-nav-component-takeoffice',
+    'Делопроизводство 4.5': 'icon-nav-component-takeoffice',
     'Управление процессами': 'icon-nav-component-workflow',
     'Менеджер решений': 'icon-nav-component-solutionmngr',
     'Модуль интеграции с реестром МЧД': 'icon-nav-component',
@@ -94,43 +131,6 @@ function App() {
     'Управление архивом': 'icon-nav-component-archivemgmt',
     'Сервис конвертации файлов': 'icon-nav-component',
   };
-
-  const titles: { [key: number]: string } = {
-    1: 'Платформа',
-    2: 'Windows-клиент',
-    3: 'Базовые объекты',
-    4: 'Управление документами',
-    5: 'Конструктор согласований',
-    6: 'Служба фоновых операций',
-    7: 'Web-клиент',
-    8: 'Консоль управления',
-    9: 'Модуль интеграции с операторами ЭДО',
-    10: 'Конструктор согласований',
-    11: 'Базовые объекты',
-    12: 'Управление документами',
-    13: 'Консоль управления',
-    14: 'Платформа',
-    15: 'Делопроизводство',
-    16: 'Web-клиент',
-    17: 'Windows-клиент',
-    18: 'Служба фоновых операций',
-    19: 'Управление процессами',
-    20: 'Модуль интеграции с операторами ЭДО',
-    21: 'Модуль интеграции с операторами ЭДО',
-    22: "Менеджер решений",
-    23: "Модуль интеграции с реестром МЧД",
-    24: "Модуль интеграции с УЦ Контур",
-    25: "Менеджер решений",
-    26: "Управление процессами",
-    27: "Управление архивом",
-    28: "Модуль интеграции с реестром МЧД",
-    29: "Сервис конвертации файлов",
-    30: "Управление архивом",
-    31: "Сервис конвертации файлов",
-    32: "Модуль интеграции с УЦ Контур",
-    33: "Управление архивом",
-  };
-  const getTitle = (id: number) => titles[id];
 
   const findIconIdByProductId = (productId: number): string | undefined => {
     for (const [productName, productIds] of Object.entries(productFilterMap)) {
@@ -155,6 +155,13 @@ function App() {
     if (!response.ok) throw new Error(fetchedData.message || response.statusText);
     setAllData(fetchedData);
     return filterSearchResults(fetchedData, searchQuery);
+  }
+
+  const fetchDataProducts = async () => {
+
+    const response = await fetch(`https://help.docsvision.com/api/changelog/products`);
+    const fetchedData = await response.json();
+    setServerData(fetchedData);
   }
 
   const filterSearchResults = (items: Item[], query: string): Item[] => {
@@ -196,26 +203,39 @@ function App() {
 
   const filteredData = activeFilters.length
     ? data.filter(item => {
-      // Проверяем, выбраны ли версии "5.5" и/или "6.1"
-      const versionFilters = activeFilters.filter(filter => filter === '5.5' || filter === '6.1');
+      // Извлекаем фильтры версий и продуктов
+      const versionFilters = activeFilters.filter(filter => ['5.5', '6.1'].includes(filter));
+      const productFilters = activeFilters.filter(filter => !['5.5', '6.1'].includes(filter));
+      const isDocumentationFilterActive = activeFilters.includes('Документация');
 
-      if (versionFilters.length === 1) {
-        // Если выбрана только одна версия (например, "5.5" или "6.1")
-        const versionFilter = versionFilters[0];
-        const productFilters = activeFilters.filter(filter => filter !== '5.5' && filter !== '6.1');
+      // Проверяем соответствие версиям и продуктам
+      const matchesVersion = versionFilters.length === 0 || versionFilters.some(version => productFilterMap[version].includes(item.productId));
+      const matchesProduct = productFilters.length === 0 || productFilters.some(product => productFilterMap[product].includes(item.productId));
+      const hasDocumentationChanges = item.changes.some(change => change.type === 6);
 
-        // Фильтруем элементы, которые соответствуют выбранной версии и другим активным фильтрам
-        return (
-          productFilterMap[versionFilter]?.includes(item.productId) &&
-          (productFilters.length === 0 || productFilters.some(filter => productFilterMap[filter]?.includes(item.productId)))
-        );
-      } else {
-        // Если выбраны обе версии "5.5" и "6.1" или ни одна версия не выбрана,
-        // применяем обычную логику фильтрации по продуктам
-        return activeFilters.some(filter => productFilterMap[filter]?.includes(item.productId));
+      // Логика фильтрации при активном фильтре "Документация"
+      if (isDocumentationFilterActive) {
+        // Если активированы только фильтры документации и версия
+        if (versionFilters.length > 0 && productFilters.length === 1 && productFilters[0] === 'Документация') {
+          return matchesVersion && hasDocumentationChanges; // Соответствует версии и имеет изменения документации
+        }
+
+        // Если активирован только фильтр документации
+        if (versionFilters.length === 0 && productFilters.length === 1 && productFilters[0] === 'Документация') {
+          return hasDocumentationChanges; // Возвращаем только элементы с изменениями документации
+        }
+
+        // Проверяем совпадение с версиями и продуктами
+        return matchesVersion && matchesProduct && hasDocumentationChanges;
       }
+
+      // Если фильтр "Документация" не активен, фильтруем только по версии и продукту
+      return matchesVersion && matchesProduct;
     })
     : data;
+
+
+
 
   const getData = async (initialLimit?: number) => {
     try {
@@ -242,8 +262,40 @@ function App() {
     }
   }
 
+  // Обновляем состояние для каждой группы
+  const toggleGroup = (itemId: number, groupType: number) => {
+    setExpandedGroups((prev) => ({
+      ...prev,
+      [itemId]: {
+        ...prev[itemId],
+        [groupType]: !prev[itemId]?.[groupType],
+      },
+    }));
+  };
+
+  // Логика для сворачивания и разворачивания всех групп
+  const toggleExpandAll = () => {
+    setExpandAll(!expandAll);
+    const newExpandedGroups: { [itemId: number]: { [groupType: number]: boolean } } = {};
+    data.forEach((item) => {
+      newExpandedGroups[item.id] = {};
+      [1, 2, 3, 4, 5, 6].forEach((groupType) => {
+        newExpandedGroups[item.id][groupType] = !expandAll;
+      });
+    });
+    setExpandedGroups(newExpandedGroups);
+  };
+
+  const toggleDetails = (index: number) => {
+    setExpandedDetails((prevState) => ({
+      ...prevState,
+      [index]: !prevState[index]
+    }));
+  };
+
   useEffect(() => {
     getData(INITIAL_LIMIT);
+    fetchDataProducts()
   }, []);
 
   useEffect(() => {
@@ -292,72 +344,269 @@ function App() {
               value={searchValue} />
             {searchValue && <div onClick={handleClearSearch} className='timeline__search-clear-btn'></div>}
           </div>
+          <div className='timeline__toggle'>
+            <div onClick={toggleExpandAll} className={expandAll ? 'timeline__collapse-icon' : 'timeline__expand-icon'}>
+            </div>
+          </div>
         </div>
+
         <ul className="timeline__list">
-          {filteredData.map((item: Item) => (
-            <li key={item.id} className={`timeline__list-item`}>
-              <div className='timeline__date'>
-                <div>{formattedDate(item)}</div>
-              </div>
-              <div className='timeline__icon'>
-                <div className='timeline__icon-circle'>
-                  <TimelineIcon iconId={findIconIdByProductId(item.productId)} />
+          {filteredData.map((item: Item) => {
+            return (
+              <li key={item.id} className={`timeline__list-item`}>
+                <div className='timeline__date'>
+                  <div>{formattedDate(item)}</div>
                 </div>
-                <div className='timeline__icon-line'></div>
-              </div>
-
-              <div className='timeline__content'>
-                <div className='timeline__title'>
-                  {`${getTitle(item.productId)} ${item.fileVersion}`}
+                <div className='timeline__icon'>
+                  <div className='timeline__icon-circle'>
+                    <TimelineIcon iconId={findIconIdByProductId(item.productId)} />
+                  </div>
+                  <div className='timeline__icon-line'></div>
                 </div>
-                <div className='timeline__text'>
-                  <ul>
-                    {item.changes.filter(el => el.type === 1).length > 0 && (
-                      <>
-                        <li className='timeline__section-title timeline__section-title-error'>Исправленные ошибки</li>
-                        {item.changes
-                          .filter(el => el.type === 1)
-                          .map((el, index) => (
-                            <li key={`error-${index}`} className='timeline__change-item'>
-                              <div className='timeline__change-title'>{el.title}</div>
-                              <div className='timeline__change-text'>{el.description}</div>
-                            </li>
-                          ))}
-                      </>
-                    )}
 
-                    {item.changes.filter(el => el.type === 3).length > 0 && (
-                      <>
-                        <li className='timeline__section-title timeline__section-title-update'>Функциональные изменения</li>
-                        {item.changes
-                          .filter(el => el.type === 3)
-                          .map((el, index) => (
-                            <li key={`update-${index}`} className='timeline__change-item'>
-                              <div className='timeline__change-title'>{el.title}</div>
-                              <div className='timeline__change-text'>{el.description}</div>
-                            </li>
-                          ))}
-                      </>
-                    )}
+                <div className='timeline__content'>
+                  <div className='timeline__title'>
+                    {item.type === 1 ? `${getTitle(item.productId)} ${item.fileVersion}` : `Документация ${getTitle(item.productId)} ${item.fileVersion}`}
+                  </div>
 
-                    {item.changes.filter(el => el.type !== 1 && el.type !== 3).length > 0 && (
-                      <>
-                        <li className='timeline__section-title timeline__section-title-other'>Изменения API</li>
-                        {item.changes
-                          .filter(el => el.type !== 1 && el.type !== 3)
-                          .map((el, index) => (
-                            <li key={`other-${index}`} className='timeline__change-item'>
-                              <div className='timeline__change-title'>{el.title}</div>
-                              <div className='timeline__change-text'>{el.description}</div>
-                            </li>
-                          ))}
-                      </>
-                    )}
-                  </ul>
+                  <div className='timeline__text'>
+
+                    <ul>
+                      {item.changes.filter(el => el.type === 1).length > 0 && (
+                        <>
+                          <li
+                            className='timeline__section-title timeline__section-title-error'
+                            onClick={() => toggleGroup(item.id, 1)}
+                          >
+                            Исправленные ошибки
+                            <div className='timeline__wrapper-icon'>
+                              <div className={expandedGroups[item.id]?.[1] ? 'timeline__icon-up' : 'timeline__icon-down'}>
+                              </div>
+                            </div>
+                          </li>
+                          {expandedGroups[item.id]?.[1] && (
+                            <ul>
+                              {item.changes.filter(el => el.type === 1).map((el, index) => (
+                                <li key={`error-${index}`} className='timeline__change-item'>
+                                  <div className='timeline__change'>
+                                    <div className='timeline__change-title'>{el.title}</div>
+                                    <div className='timeline__change-text'>{el.description}</div>
+                                  </div>
+                                  {el.detailed && (
+                                    <>
+                                      <button onClick={() => toggleDetails(index)}>
+                                        {expandedDetails[index] ? 'Скрыть детали' : 'ЕЩЁ'}
+                                      </button>
+                                      {expandedDetails[index] && (
+                                        <div
+                                          className='timeline__change-detailed'
+                                          dangerouslySetInnerHTML={{ __html: el.detailed }}
+                                        ></div>
+                                      )}
+                                    </>
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </>
+                      )}
+                      {item.changes.filter(el => el.type === 2).length > 0 && (
+                        <>
+                          <li
+                            className='timeline__section-title timeline__section-title-optimization'
+                            onClick={() => toggleGroup(item.id, 2)}
+                          >
+                            Оптимизации
+                            <div className='timeline__wrapper-icon'>
+                              <div className={expandedGroups[item.id]?.[2] ? 'timeline__icon-up' : 'timeline__icon-down'}>
+                              </div>
+                            </div>                          </li>
+                          {expandedGroups[item.id]?.[2] && (
+                            <ul>
+                              {item.changes.filter(el => el.type === 2).map((el, index) => (
+                                <li key={`optimization-${index}`} className='timeline__change-item'>
+                                  <div className='timeline__change'>
+                                    <div className='timeline__change-title'>{el.title}</div>
+                                    <div className='timeline__change-text'>{el.description}</div>
+                                  </div>
+                                  {el.detailed && (
+                                    <>
+                                      <button onClick={() => toggleDetails(index)}>
+                                        {expandedDetails[index] ? 'Скрыть детали' : 'ЕЩЁ'}
+                                      </button>
+                                      {expandedDetails[index] && (
+                                        <div
+                                          className='timeline__change-detailed'
+                                          dangerouslySetInnerHTML={{ __html: el.detailed }}
+                                        ></div>
+                                      )}
+                                    </>
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </>
+                      )}
+                      {item.changes.filter(el => el.type === 3).length > 0 && (
+                        <>
+                          <li
+                            className='timeline__section-title timeline__section-title-update'
+                            onClick={() => toggleGroup(item.id, 3)}
+                          >
+                            Функциональные изменения
+                            <div className='timeline__wrapper-icon'>
+                              <div className={expandedGroups[item.id]?.[3] ? 'timeline__icon-up' : 'timeline__icon-down'}>
+                              </div>
+                            </div>                          </li>
+                          {expandedGroups[item.id]?.[3] && (
+                            <ul>
+                              {item.changes.filter(el => el.type === 3).map((el, index) => (
+                                <li key={`update-${index}`} className='timeline__change-item'>
+                                  <div className='timeline__change'>
+                                    <div className='timeline__change-title'>{el.title}</div>
+                                    <div className='timeline__change-text'>{el.description}</div>
+                                  </div>
+                                  {el.detailed && (
+                                    <>
+                                      <button onClick={() => toggleDetails(index)}>
+                                        {expandedDetails[index] ? 'Скрыть детали' : 'ЕЩЁ'}
+                                      </button>
+                                      {expandedDetails[index] && (
+                                        <div
+                                          className='timeline__change-detailed'
+                                          dangerouslySetInnerHTML={{ __html: el.detailed }}
+                                        ></div>
+                                      )}
+                                    </>
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </>
+                      )}
+                      {item.changes.filter(el => el.type === 4).length > 0 && (
+                        <>
+                          <li
+                            className='timeline__section-title timeline__section-title-libraries'
+                            onClick={() => toggleGroup(item.id, 4)}
+                          >
+                            Изменения в библиотеках элементов управления
+                            <div className='timeline__wrapper-icon'>
+                              <div className={expandedGroups[item.id]?.[4] ? 'timeline__icon-up' : 'timeline__icon-down'}>
+                              </div>
+                            </div>                          </li>
+                          {expandedGroups[item.id]?.[4] && (
+                            <ul>
+                              {item.changes.filter(el => el.type === 4).map((el, index) => (
+                                <li key={`libraries-${index}`} className='timeline__change-item'>
+                                  <div className='timeline__change'>
+                                    <div className='timeline__change-title'>{el.title}</div>
+                                    <div className='timeline__change-text'>{el.description}</div>
+                                  </div>
+                                  {el.detailed && (
+                                    <>
+                                      <button onClick={() => toggleDetails(index)}>
+                                        {expandedDetails[index] ? 'Скрыть детали' : 'ЕЩЁ'}
+                                      </button>
+                                      {expandedDetails[index] && (
+                                        <div
+                                          className='timeline__change-detailed'
+                                          dangerouslySetInnerHTML={{ __html: el.detailed }}
+                                        ></div>
+                                      )}
+                                    </>
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </>
+                      )}
+                      {item.changes.filter(el => el.type === 5).length > 0 && (
+                        <>
+                          <li
+                            className='timeline__section-title timeline__section-title-api'
+                            onClick={() => toggleGroup(item.id, 5)}
+                          >
+                            Изменения API
+                            <div className='timeline__wrapper-icon'>
+                              <div className={expandedGroups[item.id]?.[5] ? 'timeline__icon-up' : 'timeline__icon-down'}>
+                              </div>
+                            </div>                          </li>
+                          {expandedGroups[item.id]?.[5] && (
+                            <ul>
+                              {item.changes.filter(el => el.type === 5).map((el, index) => (
+                                <li key={`api-${index}`} className='timeline__change-item'>
+                                  <div className='timeline__change'>
+                                    <div className='timeline__change-title'>{el.title}</div>
+                                    <div className='timeline__change-text'>{el.description}</div>
+                                  </div>
+                                  {el.detailed && (
+                                    <>
+                                      <button onClick={() => toggleDetails(index)}>
+                                        {expandedDetails[index] ? 'Скрыть детали' : 'ЕЩЁ'}
+                                      </button>
+                                      {expandedDetails[index] && (
+                                        <div
+                                          className='timeline__change-detailed'
+                                          dangerouslySetInnerHTML={{ __html: el.detailed }}
+                                        ></div>
+                                      )}
+                                    </>
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </>
+                      )}
+                      {item.changes.filter(el => el.type === 6).length > 0 && (
+                        <>
+                          <li
+                            className='timeline__section-title timeline__section-title-docs'
+                            onClick={() => toggleGroup(item.id, 6)}
+                          >
+                            Изменения в документации
+                            <div className='timeline__wrapper-icon'>
+                              <div className={expandedGroups[item.id]?.[6] ? 'timeline__icon-up' : 'timeline__icon-down'}>
+                              </div>
+                            </div>                          </li>
+                          {expandedGroups[item.id]?.[6] && (
+                            <ul>
+                              {item.changes.filter(el => el.type === 6).map((el, index) => (
+                                <li key={`docs-${index}`} className='timeline__change-item'>
+                                  <div className='timeline__change'>
+                                    <div className='timeline__change-title'>{el.title}</div>
+                                    <div className='timeline__change-text'>{el.description}</div>
+                                  </div>
+                                  {el.detailed && (
+                                    <>
+                                      <button onClick={() => toggleDetails(index)}>
+                                        {expandedDetails[index] ? 'Скрыть детали' : 'ЕЩЁ'}
+                                      </button>
+                                      {expandedDetails[index] && (
+                                        <div
+                                          className='timeline__change-detailed'
+                                          dangerouslySetInnerHTML={{ __html: el.detailed }}
+                                        ></div>
+                                      )}
+                                    </>
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </>
+                      )}
+                    </ul>
+                  </div>
                 </div>
-              </div>
-            </li>
-          ))}
+              </li>
+            )
+          })}
         </ul>
         {data.length > 0 && !showButton && (
           (activeFilters.length > 0 && filteredData.length > 0) || // Когда есть активные фильтры и отфильтрованные данные
