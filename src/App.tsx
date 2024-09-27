@@ -48,7 +48,6 @@ function App() {
   const [expandAll, setExpandAll] = useState(false);
   const [expandedDetails, setExpandedDetails] = useState<Record<number, boolean>>({});
 
-
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const additionalProducts = ['5.5', '6.1', 'Документация'];
@@ -57,15 +56,6 @@ function App() {
   const generateProducts = (data: any[]) => {
     const productNames = data.map(item => item.name);
     return [...new Set([...additionalProducts, ...productNames])];
-  };
-
-  // Функция для генерации titles
-  const generateTitles = (data: Product[]): { [key: number]: string } => {
-    const titleMap: { [key: number]: string } = {};
-    data.forEach(item => {
-      titleMap[item.id] = item.name;
-    });
-    return titleMap;
   };
 
   // Функция для генерации productFilterMap с автоматическим распределением версий
@@ -106,11 +96,9 @@ function App() {
 
   const products = generateProducts(serverData)
   const productFilterMap = generateProductFilterMap(serverData)
-  const titles = generateTitles(serverData);
-  console.log(productFilterMap);
 
-
-  const getTitle = (id: number) => titles[id];
+  const getTitle = (id: number) => serverData[id].name;
+  const getVersion = (id: number) => serverData[id].version
 
   const productIconMap: { [key: string]: string } = {
     'Документация': 'icon-nav-component-webclient',
@@ -233,9 +221,6 @@ function App() {
       return matchesVersion && matchesProduct;
     })
     : data;
-
-
-
 
   const getData = async (initialLimit?: number) => {
     try {
@@ -366,7 +351,7 @@ function App() {
 
                 <div className='timeline__content'>
                   <div className='timeline__title'>
-                    {item.type === 1 ? `${getTitle(item.productId)} ${item.fileVersion}` : `Документация ${getTitle(item.productId)} ${item.fileVersion}`}
+                    {item.type === 1 ? `${getTitle(item.productId)} ${item.fileVersion}` : `Документация ${getTitle(item.productId)} ${getVersion(item.productId)}`}
                   </div>
 
                   <div className='timeline__text'>
@@ -384,7 +369,7 @@ function App() {
                               </div>
                             </div>
                           </li>
-                          {expandedGroups[item.id]?.[1] && (
+                          <div className={expandedGroups[item.id]?.[1] ? 'timeline__section-content open' : 'timeline__section-content closed'}>
                             <ul>
                               {item.changes.filter(el => el.type === 1).map((el, index) => (
                                 <li key={`error-${index}`} className='timeline__change-item'>
@@ -395,20 +380,18 @@ function App() {
                                   {el.detailed && (
                                     <>
                                       <button onClick={() => toggleDetails(index)}>
-                                        {expandedDetails[index] ? 'Скрыть детали' : 'ЕЩЁ'}
+                                        {expandedDetails[index] ? 'Скрыть детали' : 'Ещё'}
                                       </button>
-                                      {expandedDetails[index] && (
-                                        <div
-                                          className='timeline__change-detailed'
-                                          dangerouslySetInnerHTML={{ __html: el.detailed }}
-                                        ></div>
-                                      )}
+                                      <div
+                                        className={`timeline__change-detailed ${expandedDetails[index] ? 'visible' : 'hidden'}`}
+                                        dangerouslySetInnerHTML={{ __html: el.detailed }}
+                                      />
                                     </>
                                   )}
                                 </li>
                               ))}
                             </ul>
-                          )}
+                          </div>
                         </>
                       )}
                       {item.changes.filter(el => el.type === 2).length > 0 && (
@@ -421,11 +404,12 @@ function App() {
                             <div className='timeline__wrapper-icon'>
                               <div className={expandedGroups[item.id]?.[2] ? 'timeline__icon-up' : 'timeline__icon-down'}>
                               </div>
-                            </div>                          </li>
-                          {expandedGroups[item.id]?.[2] && (
+                            </div>
+                          </li>
+                          <div className={expandedGroups[item.id]?.[2] ? 'timeline__section-content open' : 'timeline__section-content closed'}>
                             <ul>
                               {item.changes.filter(el => el.type === 2).map((el, index) => (
-                                <li key={`optimization-${index}`} className='timeline__change-item'>
+                                <li key={`error-${index}`} className='timeline__change-item'>
                                   <div className='timeline__change'>
                                     <div className='timeline__change-title'>{el.title}</div>
                                     <div className='timeline__change-text'>{el.description}</div>
@@ -433,20 +417,18 @@ function App() {
                                   {el.detailed && (
                                     <>
                                       <button onClick={() => toggleDetails(index)}>
-                                        {expandedDetails[index] ? 'Скрыть детали' : 'ЕЩЁ'}
+                                        {expandedDetails[index] ? 'Скрыть детали' : 'Ещё'}
                                       </button>
-                                      {expandedDetails[index] && (
-                                        <div
-                                          className='timeline__change-detailed'
-                                          dangerouslySetInnerHTML={{ __html: el.detailed }}
-                                        ></div>
-                                      )}
+                                      <div
+                                        className={`timeline__change-detailed ${expandedDetails[index] ? 'visible' : 'hidden'}`}
+                                        dangerouslySetInnerHTML={{ __html: el.detailed }}
+                                      />
                                     </>
                                   )}
                                 </li>
                               ))}
                             </ul>
-                          )}
+                          </div>
                         </>
                       )}
                       {item.changes.filter(el => el.type === 3).length > 0 && (
@@ -460,10 +442,10 @@ function App() {
                               <div className={expandedGroups[item.id]?.[3] ? 'timeline__icon-up' : 'timeline__icon-down'}>
                               </div>
                             </div>                          </li>
-                          {expandedGroups[item.id]?.[3] && (
+                            <div className={expandedGroups[item.id]?.[3] ? 'timeline__section-content open' : 'timeline__section-content closed'}>
                             <ul>
                               {item.changes.filter(el => el.type === 3).map((el, index) => (
-                                <li key={`update-${index}`} className='timeline__change-item'>
+                                <li key={`error-${index}`} className='timeline__change-item'>
                                   <div className='timeline__change'>
                                     <div className='timeline__change-title'>{el.title}</div>
                                     <div className='timeline__change-text'>{el.description}</div>
@@ -471,20 +453,18 @@ function App() {
                                   {el.detailed && (
                                     <>
                                       <button onClick={() => toggleDetails(index)}>
-                                        {expandedDetails[index] ? 'Скрыть детали' : 'ЕЩЁ'}
+                                        {expandedDetails[index] ? 'Скрыть детали' : 'Ещё'}
                                       </button>
-                                      {expandedDetails[index] && (
-                                        <div
-                                          className='timeline__change-detailed'
-                                          dangerouslySetInnerHTML={{ __html: el.detailed }}
-                                        ></div>
-                                      )}
+                                      <div
+                                        className={`timeline__change-detailed ${expandedDetails[index] ? 'visible' : 'hidden'}`}
+                                        dangerouslySetInnerHTML={{ __html: el.detailed }}
+                                      />
                                     </>
                                   )}
                                 </li>
                               ))}
                             </ul>
-                          )}
+                          </div>
                         </>
                       )}
                       {item.changes.filter(el => el.type === 4).length > 0 && (
@@ -498,10 +478,10 @@ function App() {
                               <div className={expandedGroups[item.id]?.[4] ? 'timeline__icon-up' : 'timeline__icon-down'}>
                               </div>
                             </div>                          </li>
-                          {expandedGroups[item.id]?.[4] && (
+                            <div className={expandedGroups[item.id]?.[4] ? 'timeline__section-content open' : 'timeline__section-content closed'}>
                             <ul>
                               {item.changes.filter(el => el.type === 4).map((el, index) => (
-                                <li key={`libraries-${index}`} className='timeline__change-item'>
+                                <li key={`error-${index}`} className='timeline__change-item'>
                                   <div className='timeline__change'>
                                     <div className='timeline__change-title'>{el.title}</div>
                                     <div className='timeline__change-text'>{el.description}</div>
@@ -509,20 +489,18 @@ function App() {
                                   {el.detailed && (
                                     <>
                                       <button onClick={() => toggleDetails(index)}>
-                                        {expandedDetails[index] ? 'Скрыть детали' : 'ЕЩЁ'}
+                                        {expandedDetails[index] ? 'Скрыть детали' : 'Ещё'}
                                       </button>
-                                      {expandedDetails[index] && (
-                                        <div
-                                          className='timeline__change-detailed'
-                                          dangerouslySetInnerHTML={{ __html: el.detailed }}
-                                        ></div>
-                                      )}
+                                      <div
+                                        className={`timeline__change-detailed ${expandedDetails[index] ? 'visible' : 'hidden'}`}
+                                        dangerouslySetInnerHTML={{ __html: el.detailed }}
+                                      />
                                     </>
                                   )}
                                 </li>
                               ))}
                             </ul>
-                          )}
+                          </div>
                         </>
                       )}
                       {item.changes.filter(el => el.type === 5).length > 0 && (
@@ -536,10 +514,10 @@ function App() {
                               <div className={expandedGroups[item.id]?.[5] ? 'timeline__icon-up' : 'timeline__icon-down'}>
                               </div>
                             </div>                          </li>
-                          {expandedGroups[item.id]?.[5] && (
+                            <div className={expandedGroups[item.id]?.[5] ? 'timeline__section-content open' : 'timeline__section-content closed'}>
                             <ul>
                               {item.changes.filter(el => el.type === 5).map((el, index) => (
-                                <li key={`api-${index}`} className='timeline__change-item'>
+                                <li key={`error-${index}`} className='timeline__change-item'>
                                   <div className='timeline__change'>
                                     <div className='timeline__change-title'>{el.title}</div>
                                     <div className='timeline__change-text'>{el.description}</div>
@@ -547,20 +525,18 @@ function App() {
                                   {el.detailed && (
                                     <>
                                       <button onClick={() => toggleDetails(index)}>
-                                        {expandedDetails[index] ? 'Скрыть детали' : 'ЕЩЁ'}
+                                        {expandedDetails[index] ? 'Скрыть детали' : 'Ещё'}
                                       </button>
-                                      {expandedDetails[index] && (
-                                        <div
-                                          className='timeline__change-detailed'
-                                          dangerouslySetInnerHTML={{ __html: el.detailed }}
-                                        ></div>
-                                      )}
+                                      <div
+                                        className={`timeline__change-detailed ${expandedDetails[index] ? 'visible' : 'hidden'}`}
+                                        dangerouslySetInnerHTML={{ __html: el.detailed }}
+                                      />
                                     </>
                                   )}
                                 </li>
                               ))}
                             </ul>
-                          )}
+                          </div>
                         </>
                       )}
                       {item.changes.filter(el => el.type === 6).length > 0 && (
@@ -574,10 +550,10 @@ function App() {
                               <div className={expandedGroups[item.id]?.[6] ? 'timeline__icon-up' : 'timeline__icon-down'}>
                               </div>
                             </div>                          </li>
-                          {expandedGroups[item.id]?.[6] && (
+                            <div className={expandedGroups[item.id]?.[6] ? 'timeline__section-content open' : 'timeline__section-content closed'}>
                             <ul>
                               {item.changes.filter(el => el.type === 6).map((el, index) => (
-                                <li key={`docs-${index}`} className='timeline__change-item'>
+                                <li key={`error-${index}`} className='timeline__change-item'>
                                   <div className='timeline__change'>
                                     <div className='timeline__change-title'>{el.title}</div>
                                     <div className='timeline__change-text'>{el.description}</div>
@@ -585,20 +561,18 @@ function App() {
                                   {el.detailed && (
                                     <>
                                       <button onClick={() => toggleDetails(index)}>
-                                        {expandedDetails[index] ? 'Скрыть детали' : 'ЕЩЁ'}
+                                        {expandedDetails[index] ? 'Скрыть детали' : 'Ещё'}
                                       </button>
-                                      {expandedDetails[index] && (
-                                        <div
-                                          className='timeline__change-detailed'
-                                          dangerouslySetInnerHTML={{ __html: el.detailed }}
-                                        ></div>
-                                      )}
+                                      <div
+                                        className={`timeline__change-detailed ${expandedDetails[index] ? 'visible' : 'hidden'}`}
+                                        dangerouslySetInnerHTML={{ __html: el.detailed }}
+                                      />
                                     </>
                                   )}
                                 </li>
                               ))}
                             </ul>
-                          )}
+                          </div>
                         </>
                       )}
                     </ul>

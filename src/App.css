@@ -158,6 +158,18 @@
 	flex-direction: column;
 }
 
+.timeline__section-content {
+	overflow: hidden;
+	transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+	max-height: 0;
+	opacity: 0;
+}
+
+.timeline__section-content.open {
+	max-height: 1000px; /* Здесь можно задать максимально возможную высоту раскрытого блока */
+	opacity: 1;
+}
+
 .timeline__title {
 	font-size: 17px;
 	font-weight: 500;
@@ -230,7 +242,7 @@
 	margin-right: 8px;
 	vertical-align: middle;
 }
-.timeline__wrapper-icon{
+.timeline__wrapper-icon {
 	display: flex;
 	align-items: center;
 	flex: 1;
@@ -241,12 +253,22 @@
 	height: 16px;
 	margin-left: 8px; /* Отступ между текстом и иконкой */
 	background: url('../src/icons/arrow-up.svg') no-repeat center;
+	transition: transform 0.3s ease;
 }
 .timeline__icon-down {
 	width: 16px;
 	height: 16px;
 	margin-left: 8px; /* Отступ между текстом и иконкой */
 	background: url('../src/icons/arrow-down.svg') no-repeat center;
+	transition: transform 0.3s ease;
+}
+
+.timeline__icon-up {
+	transform: rotate(180deg); /* Иконка вверх при раскрытии */
+}
+
+.timeline__icon-down {
+	transform: rotate(0deg); /* Иконка вниз при сворачивании */
 }
 
 .message-container {
@@ -259,42 +281,54 @@
 	padding-left: 10px;
 	background-color: rgb(250, 237, 201);
 }
-.timeline__toggle{
-margin-right: 6px;
-cursor: pointer;
-border-radius: 100%;
+.timeline__toggle {
+	margin-right: 6px;
+	cursor: pointer;
+	border-radius: 100%;
 }
-.timeline__toggle:hover{
+.timeline__toggle:hover {
 	background-color: rgba(208, 207, 207, 0.358);
 }
 
-.timeline__expand-icon{
+.timeline__expand-icon {
 	background: url('../src/icons/arrow-split-horizontal.svg') no-repeat center;
 	height: 25px;
 	width: 25px;
 }
 
-.timeline__collapse-icon{
+.timeline__collapse-icon {
 	background: url('../src/icons/format-vertical-align-center.svg') no-repeat center;
 	height: 25px;
 	width: 25px;
-
 }
-.timeline__change{
+.timeline__change {
 	display: flex;
-	
 }
 
-.timeline__change-item button{
-background-color: #7555f9;
-color: #fff;
-font-size: 8px;
-border: none;	
-height: 18px;
-margin-left: 65px;
-cursor: pointer;
-}
-
-.timeline__change-detailed{
+.timeline__change-item button {
+	background-color: #7555f9;
+	color: #fff;
+	font-size: 8px;
+	border: none;
+	height: 18px;
 	margin-left: 65px;
+	cursor: pointer;
+}
+
+.timeline__change-detailed {
+	margin-left: 65px;
+	transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+	max-height: 0;
+	opacity: 0;
+	overflow: hidden;
+}
+
+.timeline__change-detailed.visible {
+	max-height: 500px; /* Должно быть больше, чем потенциальный контент */
+	opacity: 1;
+}
+
+.timeline__change-detailed.hidden {
+	max-height: 0;
+	opacity: 0;
 }
