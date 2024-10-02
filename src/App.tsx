@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import './App.css'
 import { TimelineIcon } from './Icon';
+import Section from '@/Section';
 
 export type Item = {
   id: number,
@@ -45,8 +46,8 @@ function App() {
   const [allData, setAllData] = useState<Item[]>([]);
   const [serverData, setServerData] = useState<Product[]>([])
   const [expandedGroups, setExpandedGroups] = useState<{ [itemId: number]: { [groupType: number]: boolean } }>({});
-  const [expandAll, setExpandAll] = useState(false);
   const [expandedDetails, setExpandedDetails] = useState<Record<number, boolean>>({});
+  const [showAllFilters, setShowAllFilters] = useState(false);
 
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -93,12 +94,12 @@ function App() {
     return map;
   };
 
-
   const products = generateProducts(serverData)
+  const displayedProducts = showAllFilters ? products : products.slice(0, 8);
   const productFilterMap = generateProductFilterMap(serverData)
 
-  const getTitle = (id: number) => serverData[id].name;
-  const getVersion = (id: number) => serverData[id].version
+  const getTitle = (id: number) => serverData.find(item => item.id === id)?.name;
+  const getVersion = (id: number) => serverData.find(item => item.id === id)?.version;
 
   const productIconMap: { [key: string]: string } = {
     'Документация': 'icon-nav-component-webclient',
@@ -130,7 +131,7 @@ function App() {
   };
 
   const formattedDate = (item: Item) => {
-    return format(new Date(item.metadata.publishDate), 'dd MMMM yyyy', { locale: ru });
+    return format(new Date(item.metadata.publishDate), 'dd MMM yyyy', { locale: ru });
   };
 
   const handleClickButton = () => {
@@ -151,24 +152,43 @@ function App() {
     const fetchedData = await response.json();
     setServerData(fetchedData);
   }
+  const highlightText = (text: string, query: string): string => {
+    if (!query.trim()) return text;
+
+    const regex = new RegExp(`(${query})`, 'gi');
+    return text.replace(regex, '<mark>$1</mark>');
+  };
 
   const filterSearchResults = (items: Item[], query: string): Item[] => {
     return items
       .map(item => {
-        const matchingChanges = item.changes.filter(change =>
-          change.description.toLowerCase().includes(query.toLowerCase()) ||
-          change.title.toLowerCase().includes(query.toLowerCase()));
+        const matchingChanges = item.changes
+          .map(change => {
+            const titleHighlighted = highlightText(change.title, query);
+            const descriptionHighlighted = highlightText(change.description, query);
+            const detailedHighlighted = change.detailed ? highlightText(change.detailed, query) : '';
+            return {
+              ...change,
+              title: titleHighlighted,
+              description: descriptionHighlighted,
+              detailed: detailedHighlighted,
+            };
+          })
+          .filter(change =>
+            change.title.includes('<mark>') ||
+            change.description.includes('<mark>') ||
+            (change.detailed && change.detailed.includes('<mark>'))
+          );
         return matchingChanges.length ? { ...item, changes: matchingChanges } : null;
       })
       .filter(Boolean) as Item[];
-  }
+  };
 
   const handleSearch = async (searchQuery: string) => {
     if (searchQuery.trim()) {
       const filteredItems = allData.length
         ? filterSearchResults(allData, searchQuery)
         : await fetchDataAndFilter(searchQuery);
-
       setShowButton(false);
       setData(filteredItems.length ? filteredItems : []);
     } else {
@@ -234,22 +254,39 @@ function App() {
       if (!response.ok) {
         throw new Error(newData.message || response.statusText);
       }
-
       setData([...data, ...newData]);
       setTotalItem(totalItem + newData.length);
       setShowButton(true)
       if (newData.length < INITIAL_LIMIT) {
         setShowButton(false)
       }
-
     } catch (error) {
       console.error('Ошибка получения данных с сервера', error);
     }
   }
 
-  // Обновляем состояние для каждой группы
+  // Логика для переключения видимости всех групп у конкретного айтема
+  const toggleExpandAllForItem = (itemId: number) => {
+    const currentExpandedState = expandedGroups[itemId] || { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false };
+
+    // Проверяем, если все группы уже развернуты
+    const allExpanded = Object.values(currentExpandedState).every(val => val);
+
+    // Устанавливаем состояние всех групп в зависимости от их текущего состояния
+    const newExpandedGroups = {
+      ...expandedGroups,
+      [itemId]: Object.keys(currentExpandedState).reduce((acc, key) => {
+        acc[Number(key)] = !allExpanded; // Устанавливаем новое состояние для каждой группы
+        return acc;
+      }, {} as { [groupType: number]: boolean }),
+    };
+
+    setExpandedGroups(newExpandedGroups);
+  };
+
+  // Функция для переключения состояния группы секций
   const toggleGroup = (itemId: number, groupType: number) => {
-    setExpandedGroups((prev) => ({
+    setExpandedGroups(prev => ({
       ...prev,
       [itemId]: {
         ...prev[itemId],
@@ -258,23 +295,10 @@ function App() {
     }));
   };
 
-  // Логика для сворачивания и разворачивания всех групп
-  const toggleExpandAll = () => {
-    setExpandAll(!expandAll);
-    const newExpandedGroups: { [itemId: number]: { [groupType: number]: boolean } } = {};
-    data.forEach((item) => {
-      newExpandedGroups[item.id] = {};
-      [1, 2, 3, 4, 5, 6].forEach((groupType) => {
-        newExpandedGroups[item.id][groupType] = !expandAll;
-      });
-    });
-    setExpandedGroups(newExpandedGroups);
-  };
-
   const toggleDetails = (index: number) => {
-    setExpandedDetails((prevState) => ({
+    setExpandedDetails(prevState => ({
       ...prevState,
-      [index]: !prevState[index]
+      [index]: !prevState[index],
     }));
   };
 
@@ -307,287 +331,156 @@ function App() {
 
   return (
     <div className='timeline'>
-      <div className="timeline__filter">
-        {products.map((product) => (
-          <div className={`timeline__filter-product ${activeFilters.includes(product) ? 'timeline__filter-product--active' : ''}`}
-            key={product}
-            onClick={() => handleFilterClick(product)}>
-            {product}
-          </div>
-        ))}
-      </div>
-
+      <h1 className='timeline__header'>История изменений</h1>
       <div className="timeline__container">
-        <h1 className='timeline__header'>История изменений</h1>
-        <div className="timeline__search">
-          <div className='timeline__search-input-wrapper'>
-            <div className='timeline__search-icon'></div>
-            <input placeholder='Поиск по изменениям'
-              type="text"
-              className='timeline__search-input'
-              onChange={(e) => setSearchValue(e.target.value)}
-              value={searchValue} />
-            {searchValue && <div onClick={handleClearSearch} className='timeline__search-clear-btn'></div>}
-          </div>
-          <div className='timeline__toggle'>
-            <div onClick={toggleExpandAll} className={expandAll ? 'timeline__collapse-icon' : 'timeline__expand-icon'}>
+        <div className="timeline__box">
+          <ul className="timeline__list">
+            {filteredData.map((item: Item) => {
+              return (
+                <li key={item.id} className={`timeline__list-item`}>
+                  <div className='timeline__icon'>
+                    <div className='timeline__icon-circle'>
+                      <TimelineIcon iconId={findIconIdByProductId(item.productId)} />
+                    </div>
+                    <div className='timeline__icon-line'></div>
+                  </div>
+                  <div className='timeline__content'>
+                    <div className='timeline__title'>
+                      <div className='timeline__title-text'>
+                        {item.type === 1 ? `${getTitle(item.productId)} ${item.fileVersion}` : `Документация ${getTitle(item.productId)} ${getVersion(item.productId)}`}
+                      </div>
+                      <div className='timeline__title-date-block'>
+                        <div className='timeline__date'>
+                          <div>{formattedDate(item)}</div>
+                        </div>
+                        <div className='timeline__toggle'>
+                          <div className='timeline__toggle-wrapper'>
+                            <div onClick={() => toggleExpandAllForItem(item.id)} className={'timeline__expand-icon'}>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className='timeline__text'>
+                      <ul>
+                        {item.changes.filter(el => el.type === 1).length > 0 && (
+                          <Section
+                            name={'Исправленные ошибки'}
+                            type={1}
+                            item={item}
+                            expandedGroups={expandedGroups}
+                            expandedDetails={expandedDetails}
+                            searchValue={searchValue}
+                            toggleDetails={toggleDetails}
+                            toggleGroup={toggleGroup}
+                            highlightText={highlightText} />
+                        )}
+                        {item.changes.filter(el => el.type === 2).length > 0 && (
+                          <Section
+                            name={'Оптимизации'}
+                            type={2}
+                            item={item}
+                            expandedGroups={expandedGroups}
+                            expandedDetails={expandedDetails}
+                            searchValue={searchValue}
+                            toggleDetails={toggleDetails}
+                            toggleGroup={toggleGroup}
+                            highlightText={highlightText} />
+                        )}
+                        {item.changes.filter(el => el.type === 3).length > 0 && (
+                          <Section
+                            name={'Функциональные изменения'}
+                            type={3}
+                            item={item}
+                            expandedGroups={expandedGroups}
+                            expandedDetails={expandedDetails}
+                            searchValue={searchValue}
+                            toggleDetails={toggleDetails}
+                            toggleGroup={toggleGroup}
+                            highlightText={highlightText} />
+                        )}
+                        {item.changes.filter(el => el.type === 4).length > 0 && (
+                          <Section
+                            name={'Изменения в библиотеках элементов управления'}
+                            type={4}
+                            item={item}
+                            expandedGroups={expandedGroups}
+                            expandedDetails={expandedDetails}
+                            searchValue={searchValue}
+
+                            toggleDetails={toggleDetails}
+                            toggleGroup={toggleGroup}
+                            highlightText={highlightText} />
+                        )}
+                        {item.changes.filter(el => el.type === 5).length > 0 && (
+                          <Section
+                            name={'Изменения в API'}
+                            type={5}
+                            item={item}
+                            expandedGroups={expandedGroups}
+                            expandedDetails={expandedDetails}
+                            searchValue={searchValue}
+                            toggleDetails={toggleDetails}
+                            toggleGroup={toggleGroup}
+                            highlightText={highlightText} />
+                        )}
+                        {item.changes.filter(el => el.type === 6).length > 0 && (
+                          <Section
+                            name={'Изменения в документации'}
+                            type={6}
+                            item={item}
+                            expandedGroups={expandedGroups}
+                            expandedDetails={expandedDetails}
+                            searchValue={searchValue}
+                            toggleDetails={toggleDetails}
+                            toggleGroup={toggleGroup}
+                            highlightText={highlightText} />
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+                </li>
+              )
+            })}
+            {!showButton && (data.length === 0 || filteredData.length === 0) && (
+              <div className='message-container'>Не найдено.</div>
+            )}
+          </ul>
+          {data.length > 0 && !showButton && (
+            (activeFilters.length > 0 && filteredData.length > 0) || // Когда есть активные фильтры и отфильтрованные данные
+            (activeFilters.length === 0) // Или когда нет активных фильтров
+          ) && (
+              <div className='timeline__end'></div>
+            )}
+        </div>
+        <div className='sidebar'>
+          <div className='filter'>
+            <div className="timeline__search">
+              <div className='timeline__search-input-wrapper'>
+                <div className='timeline__search-icon'></div>
+                <input placeholder='Поиск по изменениям'
+                  type="text"
+                  className='timeline__search-input'
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  value={searchValue} />
+                {searchValue && <div onClick={handleClearSearch} className='timeline__search-clear-btn'></div>}
+              </div>
             </div>
+            <div className="timeline__filter">
+              {displayedProducts.map((product) => (
+                <label key={product} className="timeline__filter-product">
+                  <input
+                    type="checkbox"
+                    checked={activeFilters.includes(product)}
+                    onChange={() => handleFilterClick(product)}
+                  />
+                  {product}
+                </label>
+              ))}
+            </div>
+            {!showAllFilters && <div className='btn-show-all' onClick={() => setShowAllFilters(true)}>+ Больше фильтров</div>}
           </div>
         </div>
-
-        <ul className="timeline__list">
-          {filteredData.map((item: Item) => {
-            return (
-              <li key={item.id} className={`timeline__list-item`}>
-                <div className='timeline__date'>
-                  <div>{formattedDate(item)}</div>
-                </div>
-                <div className='timeline__icon'>
-                  <div className='timeline__icon-circle'>
-                    <TimelineIcon iconId={findIconIdByProductId(item.productId)} />
-                  </div>
-                  <div className='timeline__icon-line'></div>
-                </div>
-
-                <div className='timeline__content'>
-                  <div className='timeline__title'>
-                    {item.type === 1 ? `${getTitle(item.productId)} ${item.fileVersion}` : `Документация ${getTitle(item.productId)} ${getVersion(item.productId)}`}
-                  </div>
-
-                  <div className='timeline__text'>
-
-                    <ul>
-                      {item.changes.filter(el => el.type === 1).length > 0 && (
-                        <>
-                          <li
-                            className='timeline__section-title timeline__section-title-error'
-                            onClick={() => toggleGroup(item.id, 1)}
-                          >
-                            Исправленные ошибки
-                            <div className='timeline__wrapper-icon'>
-                              <div className={expandedGroups[item.id]?.[1] ? 'timeline__icon-up' : 'timeline__icon-down'}>
-                              </div>
-                            </div>
-                          </li>
-                          <div className={expandedGroups[item.id]?.[1] ? 'timeline__section-content open' : 'timeline__section-content closed'}>
-                            <ul>
-                              {item.changes.filter(el => el.type === 1).map((el, index) => (
-                                <li key={`error-${index}`} className='timeline__change-item'>
-                                  <div className='timeline__change'>
-                                    <div className='timeline__change-title'>{el.title}</div>
-                                    <div className='timeline__change-text'>{el.description}</div>
-                                  </div>
-                                  {el.detailed && (
-                                    <>
-                                      <button onClick={() => toggleDetails(index)}>
-                                        {expandedDetails[index] ? 'Скрыть детали' : 'Ещё'}
-                                      </button>
-                                      <div
-                                        className={`timeline__change-detailed ${expandedDetails[index] ? 'visible' : 'hidden'}`}
-                                        dangerouslySetInnerHTML={{ __html: el.detailed }}
-                                      />
-                                    </>
-                                  )}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </>
-                      )}
-                      {item.changes.filter(el => el.type === 2).length > 0 && (
-                        <>
-                          <li
-                            className='timeline__section-title timeline__section-title-optimization'
-                            onClick={() => toggleGroup(item.id, 2)}
-                          >
-                            Оптимизации
-                            <div className='timeline__wrapper-icon'>
-                              <div className={expandedGroups[item.id]?.[2] ? 'timeline__icon-up' : 'timeline__icon-down'}>
-                              </div>
-                            </div>
-                          </li>
-                          <div className={expandedGroups[item.id]?.[2] ? 'timeline__section-content open' : 'timeline__section-content closed'}>
-                            <ul>
-                              {item.changes.filter(el => el.type === 2).map((el, index) => (
-                                <li key={`error-${index}`} className='timeline__change-item'>
-                                  <div className='timeline__change'>
-                                    <div className='timeline__change-title'>{el.title}</div>
-                                    <div className='timeline__change-text'>{el.description}</div>
-                                  </div>
-                                  {el.detailed && (
-                                    <>
-                                      <button onClick={() => toggleDetails(index)}>
-                                        {expandedDetails[index] ? 'Скрыть детали' : 'Ещё'}
-                                      </button>
-                                      <div
-                                        className={`timeline__change-detailed ${expandedDetails[index] ? 'visible' : 'hidden'}`}
-                                        dangerouslySetInnerHTML={{ __html: el.detailed }}
-                                      />
-                                    </>
-                                  )}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </>
-                      )}
-                      {item.changes.filter(el => el.type === 3).length > 0 && (
-                        <>
-                          <li
-                            className='timeline__section-title timeline__section-title-update'
-                            onClick={() => toggleGroup(item.id, 3)}
-                          >
-                            Функциональные изменения
-                            <div className='timeline__wrapper-icon'>
-                              <div className={expandedGroups[item.id]?.[3] ? 'timeline__icon-up' : 'timeline__icon-down'}>
-                              </div>
-                            </div>                          </li>
-                            <div className={expandedGroups[item.id]?.[3] ? 'timeline__section-content open' : 'timeline__section-content closed'}>
-                            <ul>
-                              {item.changes.filter(el => el.type === 3).map((el, index) => (
-                                <li key={`error-${index}`} className='timeline__change-item'>
-                                  <div className='timeline__change'>
-                                    <div className='timeline__change-title'>{el.title}</div>
-                                    <div className='timeline__change-text'>{el.description}</div>
-                                  </div>
-                                  {el.detailed && (
-                                    <>
-                                      <button onClick={() => toggleDetails(index)}>
-                                        {expandedDetails[index] ? 'Скрыть детали' : 'Ещё'}
-                                      </button>
-                                      <div
-                                        className={`timeline__change-detailed ${expandedDetails[index] ? 'visible' : 'hidden'}`}
-                                        dangerouslySetInnerHTML={{ __html: el.detailed }}
-                                      />
-                                    </>
-                                  )}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </>
-                      )}
-                      {item.changes.filter(el => el.type === 4).length > 0 && (
-                        <>
-                          <li
-                            className='timeline__section-title timeline__section-title-libraries'
-                            onClick={() => toggleGroup(item.id, 4)}
-                          >
-                            Изменения в библиотеках элементов управления
-                            <div className='timeline__wrapper-icon'>
-                              <div className={expandedGroups[item.id]?.[4] ? 'timeline__icon-up' : 'timeline__icon-down'}>
-                              </div>
-                            </div>                          </li>
-                            <div className={expandedGroups[item.id]?.[4] ? 'timeline__section-content open' : 'timeline__section-content closed'}>
-                            <ul>
-                              {item.changes.filter(el => el.type === 4).map((el, index) => (
-                                <li key={`error-${index}`} className='timeline__change-item'>
-                                  <div className='timeline__change'>
-                                    <div className='timeline__change-title'>{el.title}</div>
-                                    <div className='timeline__change-text'>{el.description}</div>
-                                  </div>
-                                  {el.detailed && (
-                                    <>
-                                      <button onClick={() => toggleDetails(index)}>
-                                        {expandedDetails[index] ? 'Скрыть детали' : 'Ещё'}
-                                      </button>
-                                      <div
-                                        className={`timeline__change-detailed ${expandedDetails[index] ? 'visible' : 'hidden'}`}
-                                        dangerouslySetInnerHTML={{ __html: el.detailed }}
-                                      />
-                                    </>
-                                  )}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </>
-                      )}
-                      {item.changes.filter(el => el.type === 5).length > 0 && (
-                        <>
-                          <li
-                            className='timeline__section-title timeline__section-title-api'
-                            onClick={() => toggleGroup(item.id, 5)}
-                          >
-                            Изменения API
-                            <div className='timeline__wrapper-icon'>
-                              <div className={expandedGroups[item.id]?.[5] ? 'timeline__icon-up' : 'timeline__icon-down'}>
-                              </div>
-                            </div>                          </li>
-                            <div className={expandedGroups[item.id]?.[5] ? 'timeline__section-content open' : 'timeline__section-content closed'}>
-                            <ul>
-                              {item.changes.filter(el => el.type === 5).map((el, index) => (
-                                <li key={`error-${index}`} className='timeline__change-item'>
-                                  <div className='timeline__change'>
-                                    <div className='timeline__change-title'>{el.title}</div>
-                                    <div className='timeline__change-text'>{el.description}</div>
-                                  </div>
-                                  {el.detailed && (
-                                    <>
-                                      <button onClick={() => toggleDetails(index)}>
-                                        {expandedDetails[index] ? 'Скрыть детали' : 'Ещё'}
-                                      </button>
-                                      <div
-                                        className={`timeline__change-detailed ${expandedDetails[index] ? 'visible' : 'hidden'}`}
-                                        dangerouslySetInnerHTML={{ __html: el.detailed }}
-                                      />
-                                    </>
-                                  )}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </>
-                      )}
-                      {item.changes.filter(el => el.type === 6).length > 0 && (
-                        <>
-                          <li
-                            className='timeline__section-title timeline__section-title-docs'
-                            onClick={() => toggleGroup(item.id, 6)}
-                          >
-                            Изменения в документации
-                            <div className='timeline__wrapper-icon'>
-                              <div className={expandedGroups[item.id]?.[6] ? 'timeline__icon-up' : 'timeline__icon-down'}>
-                              </div>
-                            </div>                          </li>
-                            <div className={expandedGroups[item.id]?.[6] ? 'timeline__section-content open' : 'timeline__section-content closed'}>
-                            <ul>
-                              {item.changes.filter(el => el.type === 6).map((el, index) => (
-                                <li key={`error-${index}`} className='timeline__change-item'>
-                                  <div className='timeline__change'>
-                                    <div className='timeline__change-title'>{el.title}</div>
-                                    <div className='timeline__change-text'>{el.description}</div>
-                                  </div>
-                                  {el.detailed && (
-                                    <>
-                                      <button onClick={() => toggleDetails(index)}>
-                                        {expandedDetails[index] ? 'Скрыть детали' : 'Ещё'}
-                                      </button>
-                                      <div
-                                        className={`timeline__change-detailed ${expandedDetails[index] ? 'visible' : 'hidden'}`}
-                                        dangerouslySetInnerHTML={{ __html: el.detailed }}
-                                      />
-                                    </>
-                                  )}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </>
-                      )}
-                    </ul>
-                  </div>
-                </div>
-              </li>
-            )
-          })}
-        </ul>
-        {data.length > 0 && !showButton && (
-          (activeFilters.length > 0 && filteredData.length > 0) || // Когда есть активные фильтры и отфильтрованные данные
-          (activeFilters.length === 0) // Или когда нет активных фильтров
-        ) && (
-            <div className='timeline__end'></div>
-          )}
       </div>
       <div className="timeline__button-wrapper">
         {
@@ -598,9 +491,6 @@ function App() {
           )
         }
       </div>
-      {!showButton && (data.length === 0 || filteredData.length === 0) && (
-        <div className='message-container'>Не найдено.</div>
-      )}
     </div >
   );
 }
