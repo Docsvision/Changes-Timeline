@@ -1,2 +1,2 @@
 import "/@vite/client";
-import "/src/main.ts";
+import "/src/main.tsx";
