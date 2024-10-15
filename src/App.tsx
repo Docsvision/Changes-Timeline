@@ -48,6 +48,8 @@ function App() {
   const [expandedGroups, setExpandedGroups] = useState<{ [itemId: number]: { [groupType: number]: boolean } }>({});
   const [expandedDetails, setExpandedDetails] = useState<Record<number, boolean>>({});
   const [showAllFilters, setShowAllFilters] = useState(false);
+  const [expandedDateGroups, setExpandedDateGroups] = useState<Record<string, boolean>>({});
+
 
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -130,13 +132,9 @@ function App() {
     return undefined;
   };
 
-  const formattedDate = (item: Item) => {
-    return format(new Date(item.metadata.publishDate), 'dd MMM yyyy', { locale: ru });
-  };
-
   const formattedGroupDate = (dateString: string) => {
     return format(new Date(dateString), 'dd MMM yyyy', { locale: ru });
-};
+  };
 
   const handleClickButton = () => {
     getData();
@@ -213,7 +211,7 @@ function App() {
       : [...prevFilters, filter]);
   }
 
-  const filteredData = activeFilters.length
+  const filteredData = activeFilters
     ? data.filter(item => {
       // Извлекаем фильтры версий и продуктов
       const versionFilters = activeFilters.filter(filter => ['5.5', '6.1'].includes(filter));
@@ -225,18 +223,39 @@ function App() {
       const matchesProduct = productFilters.length === 0 || productFilters.some(product => productFilterMap[product].includes(item.productId));
       const hasDocumentationChanges = item.changes.some(change => change.type === 6);
 
-      // Если активен фильтр по документации, показываем только элементы с документацией и соответствующие другим фильтрам
-      if (isDocumentationFilterActive) {
-        return hasDocumentationChanges && matchesVersion && matchesProduct;
+      // Если активен только фильтр документации, показываем только документации
+      if (isDocumentationFilterActive && productFilters.length === 0 && versionFilters.length === 0) {
+        return hasDocumentationChanges
+      }
+      // Если активен фильтр документации и версию, показываем документацию и версию
+      if (isDocumentationFilterActive && productFilters.length === 0 && versionFilters.length > 0) {
+        return matchesVersion
+      }
+      // Если активен фильтр документации и продукт, показываем документацию и продукт
+      if (isDocumentationFilterActive && productFilters.length > 0 && versionFilters.length === 0) {
+        return matchesProduct
+      }
+      // Если активен фильтр документации и версию и продукт, показываем документацию и версию и продукт
+      if (isDocumentationFilterActive && productFilters.length > 0 && versionFilters.length > 0) {
+        return matchesProduct && matchesVersion
+      }
+      // Если нет фильтра вернем все данные кроме документации
+      if (!isDocumentationFilterActive && productFilters.length === 0 && versionFilters.length === 0) {
+        return !hasDocumentationChanges
+      }
+      // Если активен фильтр версии, показываем только версию без документации
+      if (!isDocumentationFilterActive && productFilters.length === 0 && versionFilters.length > 0) {
+        return !hasDocumentationChanges && matchesVersion
+      }
+      // Если активен фильтр продукта, показываем только продукт без документации
+      if (!isDocumentationFilterActive && productFilters.length > 0 && versionFilters.length === 0) {
+        return !hasDocumentationChanges && matchesProduct
+      }
+      // Если активен фильтр версии и продукта, показываем только версию и продукт без документации
+      if (!isDocumentationFilterActive && productFilters.length > 0 && versionFilters.length > 0) {
+        return !hasDocumentationChanges && matchesProduct && matchesVersion
       }
 
-      // Если фильтр "Документация" не активен, не показываем объекты с изменениями в документации
-      if (hasDocumentationChanges) {
-        return false;
-      }
-
-      // Фильтрация только по версиям и продуктам
-      return matchesVersion && matchesProduct;
     })
     : data;
 
@@ -262,8 +281,6 @@ function App() {
   };
 
   const groupedData = groupDataByDate(filteredData);
-  console.log(groupedData);
-
 
   const getData = async (initialLimit?: number) => {
     try {
@@ -325,6 +342,15 @@ function App() {
     }));
   };
 
+  const toggleExpandAllForDate = (date: string) => {
+    const isExpanded = expandedDateGroups[date] || false; // Если значение не определено, по умолчанию false
+    setExpandedDateGroups(prevState => ({
+      ...prevState,
+      [date]: !isExpanded,
+    }));
+  };
+
+
   useEffect(() => {
     getData(INITIAL_LIMIT);
     fetchDataProducts()
@@ -360,28 +386,33 @@ function App() {
           <ul className="timeline__list">
             {groupedData.map((group) => (
               <li key={group.date} className='timeline__date-group'>
-                <div className='timeline__date-line'></div> {/* Соединительная линия на уровне группы дат */}
                 <div className='timeline__date-header'>
-                  <div className='timeline__date-circle'></div> {/* Круг на линии слева от даты */}
-                  <h2 className='timeline__date-title'>{formattedGroupDate(group.date)}</h2>
+                  <div
+                    className='timeline__date-title'
+                    onClick={() => toggleExpandAllForDate(group.date)}
+                  >
+                    {formattedGroupDate(group.date)}
+                  </div>
                 </div>
-                <ul className='timeline__date-items'>
-                  {group.items.map((item: Item) => (
+                <ul className={`timeline__date-items ${!expandedDateGroups[group.date] ? 'expanded' : 'collapsed'}`}>
+                  {group.items.map((item: Item, index: number) => (
                     <li key={item.id} className={`timeline__list-item`}>
+                      <div className='timeline__date-header'>
+                      </div>
                       <div className='timeline__icon'>
                         <div className='timeline__icon-circle'>
                           <TimelineIcon iconId={findIconIdByProductId(item.productId)} />
                         </div>
-                        {/* <div className='timeline__icon-line'></div> */}
+                        <div className='timeline__icon-line'></div>
                       </div>
                       <div className='timeline__content'>
+                        {/* Отображаем дату только для первого элемента в группе */}
                         <div className='timeline__title'>
                           <div className='timeline__title-text'>
                             {item.type === 1 ? `${getTitle(item.productId)} ${item.fileVersion}` : `Документация ${getTitle(item.productId)} ${getVersion(item.productId)}`}
                           </div>
                           <div className='timeline__title-date-block'>
                             <div className='timeline__date'>
-                              {/* <div>{formattedDate(item)}</div> */}
                             </div>
                             <div className='timeline__toggle'>
                               <div className='timeline__toggle-wrapper'>
@@ -475,6 +506,7 @@ function App() {
                     <div className='message-container'>Не найдено.</div>
                   )}
                 </ul>
+                <div className={`${expandedDateGroups[group.date] ? 'empty' : ''}`} />
               </li>
             ))}
           </ul>
