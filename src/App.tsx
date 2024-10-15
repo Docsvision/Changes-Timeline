@@ -134,6 +134,10 @@ function App() {
     return format(new Date(item.metadata.publishDate), 'dd MMM yyyy', { locale: ru });
   };
 
+  const formattedGroupDate = (dateString: string) => {
+    return format(new Date(dateString), 'dd MMM yyyy', { locale: ru });
+};
+
   const handleClickButton = () => {
     getData();
   }
@@ -213,7 +217,7 @@ function App() {
     ? data.filter(item => {
       // Извлекаем фильтры версий и продуктов
       const versionFilters = activeFilters.filter(filter => ['5.5', '6.1'].includes(filter));
-      const productFilters = activeFilters.filter(filter => !['5.5', '6.1'].includes(filter));
+      const productFilters = activeFilters.filter(filter => !['5.5', '6.1', 'Документация'].includes(filter));
       const isDocumentationFilterActive = activeFilters.includes('Документация');
 
       // Проверяем соответствие версиям и продуктам
@@ -221,26 +225,45 @@ function App() {
       const matchesProduct = productFilters.length === 0 || productFilters.some(product => productFilterMap[product].includes(item.productId));
       const hasDocumentationChanges = item.changes.some(change => change.type === 6);
 
-      // Логика фильтрации при активном фильтре "Документация"
+      // Если активен фильтр по документации, показываем только элементы с документацией и соответствующие другим фильтрам
       if (isDocumentationFilterActive) {
-        // Если активированы только фильтры документации и версия
-        if (versionFilters.length > 0 && productFilters.length === 1 && productFilters[0] === 'Документация') {
-          return matchesVersion && hasDocumentationChanges; // Соответствует версии и имеет изменения документации
-        }
-
-        // Если активирован только фильтр документации
-        if (versionFilters.length === 0 && productFilters.length === 1 && productFilters[0] === 'Документация') {
-          return hasDocumentationChanges; // Возвращаем только элементы с изменениями документации
-        }
-
-        // Проверяем совпадение с версиями и продуктами
-        return matchesVersion && matchesProduct && hasDocumentationChanges;
+        return hasDocumentationChanges && matchesVersion && matchesProduct;
       }
 
-      // Если фильтр "Документация" не активен, фильтруем только по версии и продукту
+      // Если фильтр "Документация" не активен, не показываем объекты с изменениями в документации
+      if (hasDocumentationChanges) {
+        return false;
+      }
+
+      // Фильтрация только по версиям и продуктам
       return matchesVersion && matchesProduct;
     })
     : data;
+
+  const groupDataByDate = (data: Item[]): { date: string; items: Item[] }[] => {
+    // Сначала сортируем данные по дате
+    const sortedData = data.sort((a, b) => new Date(b.metadata.publishDate).getTime() - new Date(a.metadata.publishDate).getTime());
+
+    // Группируем данные по дате, создавая массив объектов
+    const groupedData: { date: string; items: Item[] }[] = [];
+
+    sortedData.forEach((item) => {
+      const publishDate = format(new Date(item.metadata.publishDate), 'yyyy-MM-dd');
+      const existingGroup = groupedData.find((group) => group.date === publishDate);
+
+      if (existingGroup) {
+        existingGroup.items.push(item);
+      } else {
+        groupedData.push({ date: publishDate, items: [item] });
+      }
+    });
+
+    return groupedData;
+  };
+
+  const groupedData = groupDataByDate(filteredData);
+  console.log(groupedData);
+
 
   const getData = async (initialLimit?: number) => {
     try {
@@ -335,116 +358,125 @@ function App() {
       <div className="timeline__container">
         <div className="timeline__box">
           <ul className="timeline__list">
-            {filteredData.map((item: Item) => {
-              return (
-                <li key={item.id} className={`timeline__list-item`}>
-                  <div className='timeline__icon'>
-                    <div className='timeline__icon-circle'>
-                      <TimelineIcon iconId={findIconIdByProductId(item.productId)} />
-                    </div>
-                    <div className='timeline__icon-line'></div>
-                  </div>
-                  <div className='timeline__content'>
-                    <div className='timeline__title'>
-                      <div className='timeline__title-text'>
-                        {item.type === 1 ? `${getTitle(item.productId)} ${item.fileVersion}` : `Документация ${getTitle(item.productId)} ${getVersion(item.productId)}`}
-                      </div>
-                      <div className='timeline__title-date-block'>
-                        <div className='timeline__date'>
-                          <div>{formattedDate(item)}</div>
+            {groupedData.map((group) => (
+              <li key={group.date} className='timeline__date-group'>
+                <div className='timeline__date-line'></div> {/* Соединительная линия на уровне группы дат */}
+                <div className='timeline__date-header'>
+                  <div className='timeline__date-circle'></div> {/* Круг на линии слева от даты */}
+                  <h2 className='timeline__date-title'>{formattedGroupDate(group.date)}</h2>
+                </div>
+                <ul className='timeline__date-items'>
+                  {group.items.map((item: Item) => (
+                    <li key={item.id} className={`timeline__list-item`}>
+                      <div className='timeline__icon'>
+                        <div className='timeline__icon-circle'>
+                          <TimelineIcon iconId={findIconIdByProductId(item.productId)} />
                         </div>
-                        <div className='timeline__toggle'>
-                          <div className='timeline__toggle-wrapper'>
-                            <div onClick={() => toggleExpandAllForItem(item.id)} className={'timeline__expand-icon'}>
+                        {/* <div className='timeline__icon-line'></div> */}
+                      </div>
+                      <div className='timeline__content'>
+                        <div className='timeline__title'>
+                          <div className='timeline__title-text'>
+                            {item.type === 1 ? `${getTitle(item.productId)} ${item.fileVersion}` : `Документация ${getTitle(item.productId)} ${getVersion(item.productId)}`}
+                          </div>
+                          <div className='timeline__title-date-block'>
+                            <div className='timeline__date'>
+                              {/* <div>{formattedDate(item)}</div> */}
+                            </div>
+                            <div className='timeline__toggle'>
+                              <div className='timeline__toggle-wrapper'>
+                                <div onClick={() => toggleExpandAllForItem(item.id)} className='timeline__expand-icon'>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                    <div className='timeline__text'>
-                      <ul>
-                        {item.changes.filter(el => el.type === 1).length > 0 && (
-                          <Section
-                            name={'Исправленные ошибки'}
-                            type={1}
-                            item={item}
-                            expandedGroups={expandedGroups}
-                            expandedDetails={expandedDetails}
-                            searchValue={searchValue}
-                            toggleDetails={toggleDetails}
-                            toggleGroup={toggleGroup}
-                            highlightText={highlightText} />
-                        )}
-                        {item.changes.filter(el => el.type === 2).length > 0 && (
-                          <Section
-                            name={'Оптимизации'}
-                            type={2}
-                            item={item}
-                            expandedGroups={expandedGroups}
-                            expandedDetails={expandedDetails}
-                            searchValue={searchValue}
-                            toggleDetails={toggleDetails}
-                            toggleGroup={toggleGroup}
-                            highlightText={highlightText} />
-                        )}
-                        {item.changes.filter(el => el.type === 3).length > 0 && (
-                          <Section
-                            name={'Функциональные изменения'}
-                            type={3}
-                            item={item}
-                            expandedGroups={expandedGroups}
-                            expandedDetails={expandedDetails}
-                            searchValue={searchValue}
-                            toggleDetails={toggleDetails}
-                            toggleGroup={toggleGroup}
-                            highlightText={highlightText} />
-                        )}
-                        {item.changes.filter(el => el.type === 4).length > 0 && (
-                          <Section
-                            name={'Изменения в библиотеках элементов управления'}
-                            type={4}
-                            item={item}
-                            expandedGroups={expandedGroups}
-                            expandedDetails={expandedDetails}
-                            searchValue={searchValue}
+                        <div className='timeline__text'>
+                          <ul>
+                            {item.changes.filter(el => el.type === 1).length > 0 && (
+                              <Section
+                                name={'Исправленные ошибки'}
+                                type={1}
+                                item={item}
+                                expandedGroups={expandedGroups}
+                                expandedDetails={expandedDetails}
+                                searchValue={searchValue}
+                                toggleDetails={toggleDetails}
+                                toggleGroup={toggleGroup}
+                                highlightText={highlightText} />
+                            )}
+                            {item.changes.filter(el => el.type === 2).length > 0 && (
+                              <Section
+                                name={'Оптимизации'}
+                                type={2}
+                                item={item}
+                                expandedGroups={expandedGroups}
+                                expandedDetails={expandedDetails}
+                                searchValue={searchValue}
+                                toggleDetails={toggleDetails}
+                                toggleGroup={toggleGroup}
+                                highlightText={highlightText} />
+                            )}
+                            {item.changes.filter(el => el.type === 3).length > 0 && (
+                              <Section
+                                name={'Функциональные изменения'}
+                                type={3}
+                                item={item}
+                                expandedGroups={expandedGroups}
+                                expandedDetails={expandedDetails}
+                                searchValue={searchValue}
+                                toggleDetails={toggleDetails}
+                                toggleGroup={toggleGroup}
+                                highlightText={highlightText} />
+                            )}
+                            {item.changes.filter(el => el.type === 4).length > 0 && (
+                              <Section
+                                name={'Изменения в библиотеках элементов управления'}
+                                type={4}
+                                item={item}
+                                expandedGroups={expandedGroups}
+                                expandedDetails={expandedDetails}
+                                searchValue={searchValue}
 
-                            toggleDetails={toggleDetails}
-                            toggleGroup={toggleGroup}
-                            highlightText={highlightText} />
-                        )}
-                        {item.changes.filter(el => el.type === 5).length > 0 && (
-                          <Section
-                            name={'Изменения в API'}
-                            type={5}
-                            item={item}
-                            expandedGroups={expandedGroups}
-                            expandedDetails={expandedDetails}
-                            searchValue={searchValue}
-                            toggleDetails={toggleDetails}
-                            toggleGroup={toggleGroup}
-                            highlightText={highlightText} />
-                        )}
-                        {item.changes.filter(el => el.type === 6).length > 0 && (
-                          <Section
-                            name={'Изменения в документации'}
-                            type={6}
-                            item={item}
-                            expandedGroups={expandedGroups}
-                            expandedDetails={expandedDetails}
-                            searchValue={searchValue}
-                            toggleDetails={toggleDetails}
-                            toggleGroup={toggleGroup}
-                            highlightText={highlightText} />
-                        )}
-                      </ul>
-                    </div>
-                  </div>
-                </li>
-              )
-            })}
-            {!showButton && (data.length === 0 || filteredData.length === 0) && (
-              <div className='message-container'>Не найдено.</div>
-            )}
+                                toggleDetails={toggleDetails}
+                                toggleGroup={toggleGroup}
+                                highlightText={highlightText} />
+                            )}
+                            {item.changes.filter(el => el.type === 5).length > 0 && (
+                              <Section
+                                name={'Изменения в API'}
+                                type={5}
+                                item={item}
+                                expandedGroups={expandedGroups}
+                                expandedDetails={expandedDetails}
+                                searchValue={searchValue}
+                                toggleDetails={toggleDetails}
+                                toggleGroup={toggleGroup}
+                                highlightText={highlightText} />
+                            )}
+                            {item.changes.filter(el => el.type === 6).length > 0 && (
+                              <Section
+                                name={'Изменения в документации'}
+                                type={6}
+                                item={item}
+                                expandedGroups={expandedGroups}
+                                expandedDetails={expandedDetails}
+                                searchValue={searchValue}
+                                toggleDetails={toggleDetails}
+                                toggleGroup={toggleGroup}
+                                highlightText={highlightText} />
+                            )}
+                          </ul>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                  {!showButton && (data.length === 0 || filteredData.length === 0) && (
+                    <div className='message-container'>Не найдено.</div>
+                  )}
+                </ul>
+              </li>
+            ))}
           </ul>
           {data.length > 0 && !showButton && (
             (activeFilters.length > 0 && filteredData.length > 0) || // Когда есть активные фильтры и отфильтрованные данные

@@ -1,7 +1,7 @@
 .timeline {
 	display: flex;
 	flex-direction: column;
-	padding: 15px;
+	padding: 15px 15px 15px 54px;
 }
 
 .timeline__filter {
@@ -385,3 +385,43 @@
 marker {
 	background-color: #bbd02d;
 }
+/* Стили для группы дат */
+.timeline__date-group {
+	position: relative;
+	padding-left: 40px; /* Отступ для иконок и линий */
+  }
+  
+  /* Соединительная линия для дат */
+  .timeline__date-line {
+	position: absolute;
+	top: 0;
+	left: 20px; /* Положение линии слева */
+	width: 2px;
+	background-color: #bbd02d;
+	height: 100%; /* Линия должна покрывать всю высоту группы */
+  }
+  /* Стили для заголовка даты */
+.timeline__date-header {
+	display: flex;
+	align-items: center;
+	margin-bottom: 10px;
+  }
+  
+  /* Круг на линии слева от даты */
+  .timeline__date-circle {
+	width: 32px;
+	height: 32px;
+	background-color: #bbd02d;
+	color: #fff;
+	border-radius: 50%;
+	z-index: 1;
+	position: absolute;
+	left: 6px; /* Положение круга */
+	top: 12px; /* Вертикальное центрирование */
+	transform: translateY(-50%); /* Центрирование круга по вертикали */
+  }
+  
+  .timeline__date-title {
+	font-size: 1.2em;
+	margin: 0 0 0 10px; /* Отступ слева от круга до текста */
+  }
