@@ -1,7 +1,7 @@
 .timeline {
 	display: flex;
 	flex-direction: column;
-	padding: 15px;
+	padding: 15px 15px 15px 54px;
 }
 
 .timeline__filter {
@@ -97,6 +97,7 @@
 .timeline__list-item {
 	margin-bottom: 100px;
 	display: flex;
+	position: relative;
 }
 
 .timeline__date {
@@ -117,6 +118,7 @@
 	align-items: center;
 	justify-content: flex-start;
 	position: relative;
+	z-index: 3;
 }
 .timeline__icon-circle {
 	width: 32px;
@@ -144,6 +146,7 @@
 	color: #333;
 	display: flex;
 	flex-direction: column;
+	z-index: 3;
 }
 
 .timeline__section-content {
@@ -376,7 +379,7 @@
 	top: 0px;
 	color: white; /* Цвет галочки */
 }
-.timeline__filter-product:hover{
+.timeline__filter-product:hover {
 	color: #7555f9;
 }
 .timeline__section-list {
@@ -385,3 +388,46 @@
 marker {
 	background-color: #bbd02d;
 }
+.timeline__date-header {
+	min-width: 120px;
+	position: relative;
+}
+
+.timeline__date-title {
+	cursor: pointer;
+	height: 31px;
+	display: flex;
+	align-items: center;
+	position: absolute;
+	z-index: 2;
+	top: 0;
+	left: 0;
+	right: 0;
+}
+
+.timeline__date-title:hover {
+	color: #7555f9;
+}
+
+.empty {
+	height: 31px;
+	border-top: 1px solid rgba(208, 207, 207, 0.358);
+	border-bottom: 1px solid rgba(208, 207, 207, 0.358);
+}
+.timeline__date-items {
+	max-height: 0;
+	overflow: hidden;
+	transition: max-height 1s ease, padding 0.5s ease;
+	padding: 0;
+}
+
+.timeline__date-items.expanded {
+	max-height: 6000px;
+	transition: max-height 2s ease, padding 0.5s ease;
+}
+
+.timeline__date-items.collapsed {
+	max-height: 0;
+	transition: max-height 1s ease, padding 0.5s ease;
+}
+

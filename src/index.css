@@ -12,6 +12,7 @@ html {
 }
 ul {
 	list-style-type: none; /* Убирает буллиты */
+	padding-inline-start: 0; /* Убираем левый отступ */
 }
 
 input {
