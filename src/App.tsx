@@ -395,7 +395,7 @@ function App() {
                   </div>
                 </div>
                 <ul className={`timeline__date-items ${!expandedDateGroups[group.date] ? 'expanded' : 'collapsed'}`}>
-                  {group.items.map((item: Item, index: number) => (
+                  {group.items.map((item: Item, _index: number) => (
                     <li key={item.id} className={`timeline__list-item`}>
                       <div className='timeline__date-header'>
                       </div>
