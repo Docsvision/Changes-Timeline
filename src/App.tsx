@@ -395,7 +395,7 @@ function App() {
                   </div>
                 </div>
                 <ul className={`timeline__date-items ${!expandedDateGroups[group.date] ? 'expanded' : 'collapsed'}`}>
-                  {group.items.map((item: Item, _index: number) => (
+                  {group.items.map((item: Item) => (
                     <li key={item.id} className={`timeline__list-item`}>
                       <div className='timeline__date-header'>
                       </div>
@@ -407,18 +407,14 @@ function App() {
                       </div>
                       <div className='timeline__content'>
                         {/* Отображаем дату только для первого элемента в группе */}
-                        <div className='timeline__title'>
+                        <div className='timeline__title' onClick={() => toggleExpandAllForItem(item.id)}>
                           <div className='timeline__title-text'>
                             {item.type === 1 ? `${getTitle(item.productId)} ${item.fileVersion}` : `Документация ${getTitle(item.productId)} ${getVersion(item.productId)}`}
                           </div>
-                          <div className='timeline__title-date-block'>
-                            <div className='timeline__date'>
-                            </div>
                             <div className='timeline__toggle'>
                               <div className='timeline__toggle-wrapper'>
-                                <div onClick={() => toggleExpandAllForItem(item.id)} className='timeline__expand-icon'>
+                                <div className='timeline__expand-icon'>
                                 </div>
-                              </div>
                             </div>
                           </div>
                         </div>

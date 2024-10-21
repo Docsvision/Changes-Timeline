@@ -88,14 +88,11 @@
 	padding: 0;
 	display: flex;
 	flex-direction: column;
-	/* align-items: stretch; */
-	/* width: 100%; */
-	/* min-width: 600px; */
 	margin-bottom: 0px;
 }
 
 .timeline__list-item {
-	margin-bottom: 100px;
+	margin-bottom: 30px;
 	display: flex;
 	position: relative;
 }
@@ -169,6 +166,11 @@
 	justify-content: space-between;
 	align-items: center;
 	border-bottom: rgba(0, 0, 0, 0.12) solid 1px;
+}
+
+.timeline__title:hover {
+	background-color: rgba(208, 207, 207, 0.358);
+	cursor: pointer;
 }
 
 .timeline__title-date-block {
@@ -273,17 +275,12 @@
 	margin-right: 20px;
 }
 .timeline__toggle {
-	width: 100%;
 	display: flex;
 	align-items: center;
 	justify-content: flex-end;
 }
-.timeline__toggle-wrapper:hover {
-	background-color: rgba(208, 207, 207, 0.358);
-}
+
 .timeline__toggle-wrapper {
-	cursor: pointer;
-	border-radius: 100%;
 	margin-right: 12px;
 	height: 27px;
 	width: 27px;
@@ -368,8 +365,8 @@
 }
 
 .timeline__filter-product input[type='checkbox']:checked {
-	background-color: #7555f9; /* Цвет фона для закрашенного чекбокса */
-	border-color: #7555f9; /* Цвет рамки при выборе */
+	background-color: #7555f9;
+	border-color: #7555f9;
 }
 
 .timeline__filter-product input[type='checkbox']:checked::before {
@@ -377,7 +374,7 @@
 	position: absolute;
 	left: 3px;
 	top: 0px;
-	color: white; /* Цвет галочки */
+	color: white;
 }
 .timeline__filter-product:hover {
 	color: #7555f9;
