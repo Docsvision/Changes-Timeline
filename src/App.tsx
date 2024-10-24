@@ -339,7 +339,7 @@ function App() {
         }
       },
       {
-        rootMargin: '100px',
+        rootMargin: '1000px',
       }
     );
 
