@@ -1,4 +1,4 @@
-import { Item } from "@/App"
+import { Item } from "@/types/Types";
 
 type SectionProps = {
     name: string;

@@ -1,3 +1,23 @@
+export const productIconMap: { [key: string]: string } = {
+  'Документация': 'icon-nav-component-webclient',
+  'Платформа': 'icon-nav-component-platform',
+  'Web-клиент': 'icon-nav-component-webclient',
+  'Управление документами': 'icon-nav-component-documentmgmt',
+  'Конструктор согласований': 'icon-nav-component-approval',
+  'Базовые объекты': 'icon-nav-component-backoffice',
+  'Windows-клиент': 'icon-nav-component-winclient',
+  'Служба фоновых операций': 'icon-nav-component-workerservice',
+  'Консоль управления': 'icon-nav-component-mgmtconsole',
+  'Модуль интеграции с операторами ЭДО': 'icon-nav-component-edi',
+  'Делопроизводство 4.5': 'icon-nav-component-takeoffice',
+  'Управление процессами': 'icon-nav-component-workflow',
+  'Менеджер решений': 'icon-nav-component-solutionmngr',
+  'Модуль интеграции с реестром МЧД': 'icon-nav-component',
+  'Модуль интеграции с УЦ Контур': 'icon-nav-component',
+  'Управление архивом': 'icon-nav-component-archivemgmt',
+  'Сервис конвертации файлов': 'icon-nav-component',
+};
+
 const icons = [
   {
     id: 'icon-nav-item-toggle',

@@ -191,6 +191,8 @@
 	width: 30px;
 	height: 2px;
 	background-color: #bbd02d;
+	position: absolute;
+    left: 119px;
 }
 
 .timeline__button-wrapper {
@@ -336,12 +338,14 @@
 
 .filter {
 	position: sticky;
-	top: 20px;
+	top: 156px;
 	border-left: 1px solid #ccc;
 	padding-left: 20px;
+	margin-top: 18px;
 }
 .timeline__box {
 	flex: 1;
+	position: relative;
 }
 .sidebar {
 	min-width: 360px;
@@ -389,7 +393,6 @@ marker {
 }
 
 .timeline__date-title {
-	cursor: pointer;
 	height: 31px;
 	display: flex;
 	align-items: center;
@@ -398,10 +401,6 @@ marker {
 	top: 0;
 	left: 0;
 	right: 0;
-}
-
-.timeline__date-title:hover {
-	color: #7555f9;
 }
 
 .empty {
