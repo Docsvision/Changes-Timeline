@@ -378,21 +378,26 @@
 	top: 0px;
 	color: white;
 }
+
 .timeline__filter-product:hover {
 	color: #7555f9;
 }
+
 .timeline__section-list {
 	padding: 0;
 }
+
 marker {
 	background-color: #bbd02d;
 }
+
 .timeline__date-header {
 	min-width: 120px;
 	position: relative;
 }
 
 .timeline__date-title {
+	cursor: pointer;
 	height: 31px;
 	display: flex;
 	align-items: center;
@@ -401,6 +406,10 @@ marker {
 	top: 0;
 	left: 0;
 	right: 0;
+}
+
+.timeline__date-title:hover {
+	color: #7555f9;
 }
 
 .empty {

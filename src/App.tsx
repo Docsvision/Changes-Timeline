@@ -181,7 +181,7 @@ function App() {
     }
   }
 
-// при клике на чекбокс
+  // при клике на чекбокс
   const handleFilterClick = (filter: string) => {
     setActiveFilters(prevFilters => prevFilters.includes(filter)
       ? prevFilters.filter(prevFilter => prevFilter !== filter)
@@ -302,6 +302,35 @@ function App() {
 
     setExpandedGroups(newExpandedGroups);
   };
+// При клике на дату разворачиваем все элементы
+  const toggleExpandAllForDate = (group: { items: Item[] }) => {
+    // Проверяем, есть ли хотя бы один элемент, полностью развернутый в группе
+    const isAnyExpanded = group.items.some(item => {
+      const itemState = expandedGroups[item.id] || {};
+      return Object.values(itemState).some(val => val); // true, если хотя бы одна группа развернута
+    });
+  
+    // Устанавливаем новое состояние в зависимости от того, развернут ли хотя бы один элемент
+    const newExpandedState = group.items.reduce((acc: { [key: number]: { [groupType: number]: boolean } }, item) => {
+      acc[item.id] = {
+        1: !isAnyExpanded,
+        2: !isAnyExpanded,
+        3: !isAnyExpanded,
+        4: !isAnyExpanded,
+        5: !isAnyExpanded,
+        6: !isAnyExpanded,
+      };
+      return acc;
+    }, {} as { [key: number]: { [groupType: number]: boolean } });
+  
+    // Обновляем состояние групп
+    setExpandedGroups(prevState => ({
+      ...prevState,
+      ...newExpandedState,
+    }));
+  };
+  
+  
 
   // Функция для переключения состояния группы секций
   const toggleGroup = (itemId: number, groupType: number) => {
@@ -407,6 +436,7 @@ function App() {
                 <div className='timeline__date-header'>
                   <div
                     className='timeline__date-title'
+                    onClick={() => toggleExpandAllForDate(group)}
                   >
                     {formattedGroupDate(group.date)}
                   </div>
