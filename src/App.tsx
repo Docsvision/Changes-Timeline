@@ -4,15 +4,17 @@ import { ru } from 'date-fns/locale';
 import './App.css'
 import { productIconMap, TimelineIcon } from './Icon';
 import Section from '@/Section';
+import { getProductVersionFromPathname } from '@/helpers/getProductVersionFromPathname';
 import { Item, Product, ProductFilterMap } from '@/types/Types';
 
 const INITIAL_LIMIT = 100;
 
 function App() {
+  const predefinedProductVersion = getProductVersionFromPathname();
   const [offset, setOffset] = useState(0);
   const [hasMoreData, setHasMoreData] = useState(true);
   const [totalItem, setTotalItem] = useState(0);
-  const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [activeFilters, setActiveFilters] = useState<string[]>(() => predefinedProductVersion ? [predefinedProductVersion] : []);
   const [data, setData] = useState<Item[]>([]);
   const [searchValue, setSearchValue] = useState('');
   const [allData, setAllData] = useState<Item[]>([]);
@@ -27,7 +29,8 @@ function App() {
 
   // Функция для генерации константы products
   const generateProducts = (data: any[]) => {
-    const additionalProducts = ['5.5', '6.1', 'Документация'];
+    const additionalProducts = ['Документация', ...(predefinedProductVersion ? [] : ['5.5', '6.1'] )];
+
     return sortProducts(data, additionalProducts);
   };
 
@@ -309,7 +312,7 @@ function App() {
       const itemState = expandedGroups[item.id] || {};
       return Object.values(itemState).some(val => val); // true, если хотя бы одна группа развернута
     });
-  
+
     // Устанавливаем новое состояние в зависимости от того, развернут ли хотя бы один элемент
     const newExpandedState = group.items.reduce((acc: { [key: number]: { [groupType: number]: boolean } }, item) => {
       acc[item.id] = {
@@ -322,15 +325,15 @@ function App() {
       };
       return acc;
     }, {} as { [key: number]: { [groupType: number]: boolean } });
-  
+
     // Обновляем состояние групп
     setExpandedGroups(prevState => ({
       ...prevState,
       ...newExpandedState,
     }));
   };
-  
-  
+
+
 
   // Функция для переключения состояния группы секций
   const toggleGroup = (itemId: number, groupType: number) => {
