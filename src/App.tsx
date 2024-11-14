@@ -430,7 +430,7 @@ function App() {
 
   return (
     <div className='timeline'>
-      <h1 className='timeline__header'>История изменений</h1>
+      <h1 className='timeline__header'>Изменения в продукте</h1>
       <div className="timeline__container">
         <div className="timeline__box">
           <ul className="timeline__list">
