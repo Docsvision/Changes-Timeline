@@ -6,6 +6,7 @@ import { productIconMap, TimelineIcon } from './Icon';
 import Section from '@/Section';
 import { getProductVersionFromPathname } from '@/helpers/getProductVersionFromPathname';
 import { Item, Product, ProductFilterMap } from '@/types/Types';
+import { isGroupOnlyBuildsFilterQuery } from '@/helpers/isGroupOnlyBuildsFilterQuery';
 
 const INITIAL_LIMIT = 100;
 
@@ -22,6 +23,7 @@ function App() {
   const [expandedGroups, setExpandedGroups] = useState<{ [itemId: number]: { [groupType: number]: boolean } }>({});
   const [expandedDetails, setExpandedDetails] = useState<Record<number, boolean>>({});
   const [isRendered, setIsRendered] = useState(false); // Добавляем состояние для отслеживания завершения рендера
+  const [showOnlyGroupBuilds, setShowOnlyGroupBuilds] = useState(() => isGroupOnlyBuildsFilterQuery());
 
   const loaderRef = useRef<HTMLDivElement | null>(null); // Реф для ленивой загрузки
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -192,7 +194,7 @@ function App() {
     initialized.current = false
   }
 
-  const filteredData = activeFilters
+  const filteredData = (activeFilters
     ? data.filter(item => {
       // Извлекаем фильтры версий и продуктов
       const versionFilters = activeFilters.filter(filter => ['5.5', '6.1'].includes(filter));
@@ -238,7 +240,7 @@ function App() {
       }
 
     })
-    : data;
+    : data).filter(item => showOnlyGroupBuilds ? !!item.groupId : true);
 
   const groupDataByDate = (data: Item[]): { date: string; items: Item[] }[] => {
     // Сначала сортируем данные по дате
@@ -435,7 +437,7 @@ function App() {
         <div className="timeline__box">
           <ul className="timeline__list">
             {groupedData.map((group) => (
-              <li key={group.date} className='timeline__date-group'>
+              <li key={group.date} className={'timeline__date-group'}>
                 <div className='timeline__date-header'>
                   <div
                     className='timeline__date-title'
@@ -446,7 +448,7 @@ function App() {
                 </div>
                 <ul className={`timeline__date-items expanded`}>
                   {group.items.map((item: Item) => (
-                    <li key={item.id} className={`timeline__list-item`}>
+                    <li key={item.id} className={`timeline__list-item` + (item.groupId ? ' timeline__list-item_grouped' : '')}>
                       <div className='timeline__date-header'>
                       </div>
                       <div className='timeline__icon'>
@@ -564,17 +566,28 @@ function App() {
         </div>
         <div className='sidebar'>
           <div className='filter'>
-            <div className="timeline__search">
+            <div className='timeline__search'>
               <div className='timeline__search-input-wrapper'>
                 <div className='timeline__search-icon'></div>
                 <input placeholder='Поиск по изменениям'
-                  type="text"
+                  type='text'
                   className='timeline__search-input'
                   onChange={(e) => setSearchValue(e.target.value)}
                   value={searchValue} />
                 {searchValue && <div onClick={handleClearSearch} className='timeline__search-clear-btn'></div>}
               </div>
             </div>
+            <label htmlFor='switch' className='timeline__switch-label'>
+              <div className='timeline__switch'>
+                <input type='checkbox' className='timeline__switch-checkbox' name='switch' id='switch'
+                  checked={showOnlyGroupBuilds} onChange={e => setShowOnlyGroupBuilds(e.target.checked)} />
+                <label className='timeline__switch-body' htmlFor='switch'>
+                  <span className='timeline__switch-inner'></span>
+                  <span className='timeline__switch-switch'></span>
+                </label>
+              </div>
+              Показывать только накопительные обновления
+            </label>
             <div className="timeline__filter">
               {products?.map((product) => (
                 <label key={product} className="timeline__filter-product">

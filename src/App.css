@@ -95,6 +95,11 @@
 	position: relative;
 }
 
+.timeline__list-item_grouped {
+	background-color: #f4f8dd;
+	border: 1px solid #f4f8dd;
+}
+
 .timeline__date {
 	font-size: 0.9rem;
 	min-width: 130px;
@@ -403,8 +408,8 @@ marker {
 	align-items: center;
 	position: absolute;
 	z-index: 2;
-	top: 0;
-	left: 0;
+	top: 2px;
+	left: 10px;
 	right: 0;
 }
 
@@ -432,4 +437,101 @@ marker {
 .timeline__date-items.collapsed {
 	max-height: 0;
 	transition: max-height 1s ease, padding 0.5s ease;
+}
+
+.timeline__switch {
+	flex: 1 0 auto;
+	position: relative;
+	width: 45px;
+	display: inline-block;
+	vertical-align: middle;
+	user-select: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	text-align: left;
+}
+
+.timeline__switch-label {
+	margin-bottom: 20px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 1rem;
+	cursor: pointer;
+}
+
+.timeline__switch-label:hover {
+	color: #7555f9;
+}
+
+.timeline__switch-checkbox {
+	display: none;
+}
+
+.timeline__switch-body {
+	display: block;
+    overflow: hidden;
+    cursor: pointer;
+    border: 0 solid #ccc;
+    border-radius: 20px;
+    margin: 0;
+}
+
+.timeline__switch-body:focus,
+.timeline__switch-body > span:focus {
+	outline: none;
+}
+
+.timeline__switch-inner {
+	display: block;
+	width: 200%;
+	margin-left: -100%;
+	transition: margin 0.3s ease-in 0s;
+}
+
+.timeline__switch-inner::after,
+.timeline__switch-inner::before {
+	content: "";
+	height: 10px;
+	display: block;
+	float: left;
+	width: 50%;
+	height: 24px;
+	padding: 0;
+	color: white;
+	font-weight: bold;
+	box-sizing: border-box;
+}
+
+.timeline__switch-inner::before {
+	padding-left: 10px;
+	background-color: #7555f9;
+}
+
+.timeline__switch-inner::after {
+	padding-right: 10px;
+	background-color: #ccc;
+}
+
+.timeline__switch-switch {
+	display: block;
+    width: 18px;
+    margin: 4px;
+    background: #fff;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 18px;
+    border: 0 solid #ccc;
+    border-radius: 20px;
+    transition: all 0.3s ease-in 0s;
+}
+
+.timeline__switch-checkbox:checked + .timeline__switch-body .timeline__switch-inner {
+    margin-left: 0;
+}
+
+.timeline__switch-checkbox:checked + .timeline__switch-body .timeline__switch-switch {
+    right: 0px;
 }
