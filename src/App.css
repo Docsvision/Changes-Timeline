@@ -26,7 +26,8 @@
 }
 
 .timeline__container {
-	display: flex;
+	display: grid;
+	grid-template-columns: 1fr 360px;
 }
 
 .timeline__header {
@@ -95,11 +96,6 @@
 	position: relative;
 }
 
-.timeline__list-item_grouped {
-	background-color: #f4f8dd;
-	border: 1px solid #f4f8dd;
-}
-
 .timeline__date {
 	font-size: 0.9rem;
 	min-width: 130px;
@@ -120,6 +116,7 @@
 	position: relative;
 	z-index: 3;
 }
+
 .timeline__icon-circle {
 	width: 32px;
 	height: 32px;
@@ -131,6 +128,12 @@
 	align-items: center;
 	justify-content: center;
 }
+
+.timeline__icon-circle_wide {
+	width: 48px;
+	height: 48px;
+}
+
 .timeline__icon-line {
 	width: 2px;
 	background-color: #bbd02d;
@@ -142,7 +145,7 @@
 
 .timeline__content {
 	flex: 1;
-	padding: 0 10px;
+	padding: 0 16px;
 	color: #333;
 	display: flex;
 	flex-direction: column;
@@ -409,7 +412,7 @@ marker {
 	position: absolute;
 	z-index: 2;
 	top: 2px;
-	left: 10px;
+	left: -8px;
 	right: 0;
 }
 
@@ -486,8 +489,8 @@ marker {
 .timeline__switch-inner {
 	display: block;
 	width: 200%;
-	margin-left: -100%;
-	transition: margin 0.3s ease-in 0s;
+	transform: translateX(-50%);
+	transition: transform 0.3s ease-in 0s;
 }
 
 .timeline__switch-inner::after,
@@ -529,9 +532,51 @@ marker {
 }
 
 .timeline__switch-checkbox:checked + .timeline__switch-body .timeline__switch-inner {
-    margin-left: 0;
+    transform: translateX(0);
 }
 
 .timeline__switch-checkbox:checked + .timeline__switch-body .timeline__switch-switch {
     right: 0px;
+}
+
+.timeline__group {
+	margin-bottom: 30px;
+	display: flex;
+}
+
+.timeline__group-content {
+	flex: 1;
+	padding: 0 16px;
+	color: #333;
+	display: flex;
+	flex-direction: column;
+	z-index: 3;
+}
+
+.timeline__group-title {
+	font-size: 1.8rem;
+	font-weight: 700;
+	min-width: 350px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	border-bottom: rgba(0, 0, 0, 0.12) solid 1px;
+}
+
+.timeline__group-description {
+	font-size: 1.2rem;
+    padding: 8px 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+}
+
+.timeline__group-description * {
+	padding: 0;
+	margin: 0;
+	box-sizing: border-box;
+}
+
+.timeline__group-date {
+	top: 10px;
 }

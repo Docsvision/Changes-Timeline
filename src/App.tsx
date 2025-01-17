@@ -5,7 +5,7 @@ import './App.css'
 import { productIconMap, TimelineIcon } from './Icon';
 import Section from '@/Section';
 import { getProductVersionFromPathname } from '@/helpers/getProductVersionFromPathname';
-import { Item, Product, ProductFilterMap } from '@/types/Types';
+import { Group, Item, Product, ProductFilterMap } from '@/types/Types';
 import { isGroupOnlyBuildsFilterQuery } from '@/helpers/isGroupOnlyBuildsFilterQuery';
 
 const INITIAL_LIMIT = 100;
@@ -24,6 +24,7 @@ function App() {
   const [expandedDetails, setExpandedDetails] = useState<Record<number, boolean>>({});
   const [isRendered, setIsRendered] = useState(false); // Добавляем состояние для отслеживания завершения рендера
   const [showOnlyGroupBuilds, setShowOnlyGroupBuilds] = useState(() => isGroupOnlyBuildsFilterQuery());
+  const [groupsData, setGroupsData] = useState<Group[]>([]);
 
   const loaderRef = useRef<HTMLDivElement | null>(null); // Реф для ленивой загрузки
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -130,6 +131,12 @@ function App() {
     const response = await fetch(`https://help.docsvision.com/api/changelog/products`);
     const fetchedData = await response.json();
     setServerData(fetchedData);
+  }
+
+  const fetchGroups = async () => {
+    const response = await fetch("https://help.docsvision.com/api/groups");
+    const fetchedData = await response.json();
+    setGroupsData(fetchedData);
   }
 
   // маркируем совпадения поиска
@@ -242,21 +249,22 @@ function App() {
     })
     : data).filter(item => showOnlyGroupBuilds ? !!item.groupId : true);
 
-  const groupDataByDate = (data: Item[]): { date: string; items: Item[] }[] => {
+  const groupDataByDate = (data: Item[]): { date: string; items: Item[]; groupId: number; groupInfo?: Group }[] => {
     // Сначала сортируем данные по дате
     const sortedData = data.sort((a, b) => new Date(b.metadata.publishDate).getTime() - new Date(a.metadata.publishDate).getTime());
 
     // Группируем данные по дате, создавая массив объектов
-    const groupedData: { date: string; items: Item[] }[] = [];
+    const groupedData: { date: string; items: Item[]; groupId: number; groupInfo?: Group }[] = [];
 
     sortedData.forEach((item) => {
       const publishDate = format(new Date(item.metadata.publishDate), 'yyyy-MM-dd');
       const existingGroup = groupedData.find((group) => group.date === publishDate);
 
-      if (existingGroup) {
+      if (existingGroup && existingGroup.groupId === item.groupId) {
         existingGroup.items.push(item);
       } else {
-        groupedData.push({ date: publishDate, items: [item] });
+        const groupInfo = groupsData.find(group => group.id === item.groupId);
+        groupedData.push({ date: publishDate, items: [item], groupId: item.groupId, groupInfo });
       }
     });
 
@@ -385,6 +393,7 @@ function App() {
   useEffect(() => {
     getData(INITIAL_LIMIT);
     fetchDataProducts()
+    fetchGroups()
   }, []);
 
   useEffect(() => {
@@ -440,15 +449,36 @@ function App() {
               <li key={group.date} className={'timeline__date-group'}>
                 <div className='timeline__date-header'>
                   <div
-                    className='timeline__date-title'
+                    className={'timeline__date-title' + (!!group.groupId ? ' timeline__group-date' : '')}
                     onClick={() => toggleExpandAllForDate(group)}
                   >
                     {formattedGroupDate(group.date)}
                   </div>
                 </div>
+                {!!group.groupId && (
+                  <div className="timeline__group">
+                    <div className="timeline__date-header"></div>
+                    <div className="timeline__icon">
+                        <div className="timeline__icon-circle timeline__icon-circle_wide">
+                            <TimelineIcon iconId={"icon-nav-component-group"} />
+                        </div>
+                        <div className="timeline__icon-line"></div>
+                    </div>
+                    <div className="timeline__group-content">
+                      <div className="timeline__group-title">
+                        {group.groupInfo?.title ?? ""}
+                      </div>
+                      <div 
+                        className={"timeline__group-description"}
+                        dangerouslySetInnerHTML={{ __html: group.groupInfo?.description ?? "" }}
+                      >
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <ul className={`timeline__date-items expanded`}>
                   {group.items.map((item: Item) => (
-                    <li key={item.id} className={`timeline__list-item` + (item.groupId ? ' timeline__list-item_grouped' : '')}>
+                    <li key={item.id} className={`timeline__list-item`}>
                       <div className='timeline__date-header'>
                       </div>
                       <div className='timeline__icon'>
