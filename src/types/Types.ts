@@ -33,4 +33,5 @@ export type Group = {
   title: string;
   description?: string;
   builds?: Item[];
+  publishDate?: string;
 }

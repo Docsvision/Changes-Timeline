@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { ReactElement, useCallback, useEffect, useRef, useState } from 'react'
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import './App.css'
@@ -29,6 +29,9 @@ function App() {
   const loaderRef = useRef<HTMLDivElement | null>(null); // Реф для ленивой загрузки
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const initialized = useRef(false); // Используем useRef для контроля однократного выполнения
+
+  const searchParams = new URLSearchParams(window.location.search);
+  const groupId = searchParams.get("groupId");
 
   // Функция для генерации константы products
   const generateProducts = (data: any[]) => {
@@ -256,8 +259,14 @@ function App() {
     // Группируем данные по дате, создавая массив объектов
     const groupedData: { date: string; items: Item[]; groupId: number; groupInfo?: Group }[] = [];
 
+
     sortedData.forEach((item) => {
-      const publishDate = format(new Date(item.metadata.publishDate), 'yyyy-MM-dd');
+      const itemGroup = !!item.groupId && groupsData.find(group => group.id === item.groupId);
+
+      const publishDate = itemGroup && itemGroup.publishDate
+        ? format(new Date(itemGroup.publishDate), 'yyyy-MM-dd')
+        : format(new Date(item.metadata.publishDate), 'yyyy-MM-dd');
+
       const existingGroup = groupedData.find((group) => group.date === publishDate);
 
       if (existingGroup && existingGroup.groupId === item.groupId) {
@@ -273,6 +282,16 @@ function App() {
 
   const groupedData = groupDataByDate(filteredData);
 
+  const fetchData = async (offset: number, limit: number = INITIAL_LIMIT) => {
+    const response = await fetch(`https://help.docsvision.com/api/changelog/tree?offset=${offset}&limit=${limit}`);
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || response.statusText);
+    }
+
+    return data;
+  }
+
   const getData = async (initialLimit?: number, customOffset?: number) => {
     try {
       let newOffset = 0;
@@ -280,11 +299,7 @@ function App() {
         newOffset = customOffset ? customOffset : offset + INITIAL_LIMIT;
         setOffset(newOffset);
       }
-      const response = await fetch(`https://help.docsvision.com/api/changelog/tree?offset=${newOffset}&limit=${INITIAL_LIMIT}`);
-      const newData = await response.json();
-      if (!response.ok) {
-        throw new Error(newData.message || response.statusText);
-      }
+      const newData= await fetchData(newOffset);
       setData([...data, ...newData]);
       setTotalItem(totalItem + newData.length);
       if (newData.length < INITIAL_LIMIT) {
@@ -295,6 +310,32 @@ function App() {
     } catch (error) {
       console.error('Ошибка получения данных с сервера', error);
     }
+  }
+
+  const getDataByGroupId = async (groupId: number) => {
+    let offset = 0;
+    let isGroupInData = false;
+    let hasMoreData = true;
+    const resultData: Item[] = [];
+
+    try {
+      while (!isGroupInData && hasMoreData) {
+        const data: Item[] = await fetchData(offset);
+        
+        isGroupInData = data.some(item => item.groupId === groupId);
+        hasMoreData = data.length === INITIAL_LIMIT;
+        
+        offset += INITIAL_LIMIT;
+        resultData.push(...data);
+      }
+    } catch (error) {
+      console.error('Ошибка получения данных с сервера', error);
+    }
+    
+    setData(resultData);
+    setTotalItem(resultData.length);
+    setHasMoreData(hasMoreData);
+    setOffset(offset);
   }
 
   // Логика для переключения видимости всех групп у конкретного айтема
@@ -315,7 +356,8 @@ function App() {
 
     setExpandedGroups(newExpandedGroups);
   };
-// При клике на дату разворачиваем все элементы
+
+  // При клике на дату разворачиваем все элементы
   const toggleExpandAllForDate = (group: { items: Item[] }) => {
     // Проверяем, есть ли хотя бы один элемент, полностью развернутый в группе
     const isAnyExpanded = group.items.some(item => {
@@ -342,8 +384,6 @@ function App() {
       ...newExpandedState,
     }));
   };
-
-
 
   // Функция для переключения состояния группы секций
   const toggleGroup = (itemId: number, groupType: number) => {
@@ -391,7 +431,8 @@ function App() {
   }, [isRendered, hasMoreData, offset]);
 
   useEffect(() => {
-    getData(INITIAL_LIMIT);
+    groupId && +!!groupId ? getDataByGroupId(+groupId) : getData(INITIAL_LIMIT);
+
     fetchDataProducts()
     fetchGroups()
   }, []);
@@ -439,6 +480,12 @@ function App() {
     };
   }, [searchValue]);
 
+  const scrollToGroup = useCallback((currentGroupId: number) => (element: HTMLDivElement) => {
+    if (groupId && +groupId === currentGroupId) {
+      element?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, []);
+
   return (
     <div className='timeline'>
       <h1 className='timeline__header'>Изменения в продукте</h1>
@@ -456,7 +503,7 @@ function App() {
                   </div>
                 </div>
                 {!!group.groupId && (
-                  <div className="timeline__group">
+                  <div className="timeline__group" ref={scrollToGroup(group.groupId)}>
                     <div className="timeline__date-header"></div>
                     <div className="timeline__icon">
                         <div className="timeline__icon-circle timeline__icon-circle_wide">
