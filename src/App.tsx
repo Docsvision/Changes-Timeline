@@ -1,12 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import './App.css'
 import { productIconMap, TimelineIcon } from './Icon';
 import Section from '@/Section';
 import { getProductVersionFromPathname } from '@/helpers/getProductVersionFromPathname';
 import { Group, Item, Product, ProductFilterMap } from '@/types/Types';
-import { isGroupOnlyBuildsFilterQuery } from '@/helpers/isGroupOnlyBuildsFilterQuery';
+
+import './App.css';
 
 const INITIAL_LIMIT = 100;
 
@@ -14,7 +14,6 @@ function App() {
   const predefinedProductVersion = getProductVersionFromPathname();
   const [offset, setOffset] = useState(0);
   const [hasMoreData, setHasMoreData] = useState(true);
-  const [totalItem, setTotalItem] = useState(0);
   const [activeFilters, setActiveFilters] = useState<string[]>(() => predefinedProductVersion ? [predefinedProductVersion] : []);
   const [data, setData] = useState<Item[]>([]);
   const [searchValue, setSearchValue] = useState('');
@@ -23,7 +22,7 @@ function App() {
   const [expandedGroups, setExpandedGroups] = useState<{ [itemId: number]: { [groupType: number]: boolean } }>({});
   const [expandedDetails, setExpandedDetails] = useState<Record<number, boolean>>({});
   const [isRendered, setIsRendered] = useState(false); // Добавляем состояние для отслеживания завершения рендера
-  const [showOnlyGroupBuilds, setShowOnlyGroupBuilds] = useState(() => isGroupOnlyBuildsFilterQuery());
+  const [showOnlyGroupBuilds, setShowOnlyGroupBuilds] = useState(false);
   const [groupsData, setGroupsData] = useState<Group[]>([]);
 
   const loaderRef = useRef<HTMLDivElement | null>(null); // Реф для ленивой загрузки
@@ -32,6 +31,7 @@ function App() {
 
   const searchParams = new URLSearchParams(window.location.search);
   const groupId = searchParams.get("groupId");
+  const hasScrolledRef = useRef(false);
 
   // Функция для генерации константы products
   const generateProducts = (data: any[]) => {
@@ -300,8 +300,7 @@ function App() {
         setOffset(newOffset);
       }
       const newData= await fetchData(newOffset);
-      setData([...data, ...newData]);
-      setTotalItem(totalItem + newData.length);
+      setData(prevData => [...prevData, ...newData]);
       if (newData.length < INITIAL_LIMIT) {
         setHasMoreData(false)
         setOffset((prevOffset) => prevOffset + INITIAL_LIMIT);
@@ -333,7 +332,6 @@ function App() {
     }
     
     setData(resultData);
-    setTotalItem(resultData.length);
     setHasMoreData(hasMoreData);
     setOffset(offset);
   }
@@ -481,9 +479,10 @@ function App() {
   }, [searchValue]);
 
   const scrollToGroup = useCallback((currentGroupId: number) => (element: HTMLDivElement) => {
-    if (groupId && +groupId === currentGroupId) {
-      element?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
+    if (!element || hasScrolledRef.current || !(groupId && +groupId === currentGroupId)) return;
+
+    element.scrollIntoView({ behavior: "smooth", block: "center" });
+    hasScrolledRef.current = true;
   }, []);
 
   return (
