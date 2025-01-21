@@ -123,7 +123,7 @@ function App() {
 
   // функция загрузки всех обьктов при поиске
   const fetchDataAndFilter = async (searchQuery: string): Promise<Item[]> => {
-    const response = await fetch(`https://help.docsvision.com/api/changelog/tree?offset=0&limit=999`);
+    const response = await fetch(`https://help.docsvision.com/api/views/timeline?offset=0&limit=999`);
     const fetchedData = await response.json();
     if (!response.ok) throw new Error(fetchedData.message || response.statusText);
     setAllData(fetchedData);
@@ -131,7 +131,7 @@ function App() {
   }
 
   const fetchDataProducts = async () => {
-    const response = await fetch(`https://help.docsvision.com/api/changelog/products`);
+    const response = await fetch(`https://help.docsvision.com/api/products`);
     const fetchedData = await response.json();
     setServerData(fetchedData);
   }
@@ -283,7 +283,7 @@ function App() {
   const groupedData = groupDataByDate(filteredData);
 
   const fetchData = async (offset: number, limit: number = INITIAL_LIMIT) => {
-    const response = await fetch(`https://help.docsvision.com/api/changelog/tree?offset=${offset}&limit=${limit}`);
+    const response = await fetch(`https://help.docsvision.com/api/views/timeline?offset=${offset}&limit=${limit}`);
     const data = await response.json();
     if (!response.ok) {
       throw new Error(data.message || response.statusText);
