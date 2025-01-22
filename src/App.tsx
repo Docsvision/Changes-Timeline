@@ -367,6 +367,8 @@ function App() {
     } catch (error) {
       console.error('Ошибка получения данных с сервера', error);
     }
+
+    if (hasMoreData) offset -= INITIAL_LIMIT;
     
     setData(resultData);
     setHasMoreData(hasMoreData);
