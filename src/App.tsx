@@ -491,8 +491,8 @@ function App() {
       <div className="timeline__container">
         <div className="timeline__box">
           <ul className="timeline__list">
-            {groupedData.map((group) => (
-              <li key={group.date} className={'timeline__date-group'}>
+            {groupedData.map((group, index) => (
+              <li key={`${group.date}-${index}`} className={'timeline__date-group'}>
                 <div className='timeline__date-header'>
                   <div
                     className={'timeline__date-title' + (!!group.groupId ? ' timeline__group-date' : '')}
