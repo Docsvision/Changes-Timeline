@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { productIconMap, TimelineIcon } from './Icon';
@@ -22,7 +22,6 @@ function App() {
   const [expandedGroups, setExpandedGroups] = useState<{ [itemId: number]: { [groupType: number]: boolean } }>({});
   const [expandedDetails, setExpandedDetails] = useState<Record<number, boolean>>({});
   const [isRendered, setIsRendered] = useState(false); // Добавляем состояние для отслеживания завершения рендера
-  const [showOnlyGroupBuilds, setShowOnlyGroupBuilds] = useState(false);
   const [groupsData, setGroupsData] = useState<Group[]>([]);
 
   const loaderRef = useRef<HTMLDivElement | null>(null); // Реф для ленивой загрузки
@@ -35,7 +34,7 @@ function App() {
 
   // Функция для генерации константы products
   const generateProducts = (data: any[]) => {
-    const additionalProducts = ['Документация', ...(predefinedProductVersion ? [] : ['5.5', '6.1'] )];
+    const additionalProducts = predefinedProductVersion ? [] : ['5.5', '6.1'];
 
     return sortProducts(data, additionalProducts);
   };
@@ -70,12 +69,12 @@ function App() {
     // Добавляем версии 5.5, 6.1 и документацию в конце
     map['5.5'] = version5_5;
     map['6.1'] = version6_1;
-    map['Документация'] = documentation;
+    map['documentationOnly'] = documentation;
 
     return map;
   };
 
-  const sortOrder = ["5.5", "6.1", "7", "1", "6", "8", "13", "20", "28", "5", "3", "12", "19", "22", "32", "2", "Документация", "27", "29", "15"];
+  const sortOrder = ["5.5", "6.1", "7", "1", "6", "8", "13", "20", "28", "5", "3", "12", "19", "22", "32", "2", "27", "29", "15"];
 
   // Функция для сортировки продуктов
   const sortProducts = (data: any[], additionalProducts: any) => {
@@ -204,53 +203,91 @@ function App() {
     initialized.current = false
   }
 
-  const filteredData = (activeFilters
+    // при клике на switch
+    const handleSwitchClick = (event: ChangeEvent<HTMLInputElement>) => {
+      const name = event.target.name;
+
+      setActiveFilters(prevFilters => {
+        if (prevFilters.includes(name)) {
+          return prevFilters.filter(prevFilter => prevFilter !== name);
+        }
+
+        if (name === 'groupOnly') {
+          return activeFilters.includes('documentationOnly') ? [...prevFilters.filter(prevFilter => prevFilter !== 'documentationOnly'), name] : [...prevFilters, name];
+        }
+
+        return activeFilters.includes('groupOnly') ? [...prevFilters.filter(prevFilter => prevFilter !== 'groupOnly'), name] : [...prevFilters, name];
+      });
+      initialized.current = false
+    }
+
+  const filteredData = activeFilters
     ? data.filter(item => {
       // Извлекаем фильтры версий и продуктов
       const versionFilters = activeFilters.filter(filter => ['5.5', '6.1'].includes(filter));
-      const productFilters = activeFilters.filter(filter => !['5.5', '6.1', 'Документация'].includes(filter));
-      const isDocumentationFilterActive = activeFilters.includes('Документация');
+      const productFilters = activeFilters.filter(filter => !['5.5', '6.1', 'documentationOnly', 'groupOnly'].includes(filter));
+      const isDocumentationOnlyFilterActive = activeFilters.includes('documentationOnly');
+      const isGroupOnlyFilterActive = activeFilters.includes('groupOnly');
 
       // Проверяем соответствие версиям и продуктам
       const matchesVersion = versionFilters.length === 0 || versionFilters.some(version => productFilterMap[version].includes(item.productId));
       const matchesProduct = productFilters.length === 0 || productFilters.some(product => productFilterMap[product].includes(item.productId));
       const hasDocumentationChanges = item.changes.some(change => change.type === 6);
+      const hasGroup = !!item.groupId;
+
+       // Если активен только фильтр групп, показываем только группы
+       if (isGroupOnlyFilterActive && productFilters.length === 0 && versionFilters.length === 0) {
+        return hasGroup
+      }
+      // Если активен фильтр групп и версию, показываем группы и версию
+      if (isGroupOnlyFilterActive && productFilters.length === 0 && versionFilters.length > 0) {
+        return hasGroup && matchesVersion
+      }
+      // Если активен фильтр групп и продукт, показываем группы и продукт
+      if (isGroupOnlyFilterActive && productFilters.length > 0 && versionFilters.length === 0) {
+        return hasGroup && matchesProduct
+      }
+      // Если активен фильтр групп и версию и продукт, показываем группы и версию и продукт
+      if (isGroupOnlyFilterActive && productFilters.length > 0 && versionFilters.length > 0) {
+        return hasGroup && matchesProduct && matchesVersion
+      }
 
       // Если активен только фильтр документации, показываем только документации
-      if (isDocumentationFilterActive && productFilters.length === 0 && versionFilters.length === 0) {
+      if (isDocumentationOnlyFilterActive && productFilters.length === 0 && versionFilters.length === 0) {
         return hasDocumentationChanges
       }
       // Если активен фильтр документации и версию, показываем документацию и версию
-      if (isDocumentationFilterActive && productFilters.length === 0 && versionFilters.length > 0) {
-        return matchesVersion
+      if (isDocumentationOnlyFilterActive && productFilters.length === 0 && versionFilters.length > 0) {
+        return hasDocumentationChanges && matchesVersion
       }
       // Если активен фильтр документации и продукт, показываем документацию и продукт
-      if (isDocumentationFilterActive && productFilters.length > 0 && versionFilters.length === 0) {
-        return matchesProduct
+      if (isDocumentationOnlyFilterActive && productFilters.length > 0 && versionFilters.length === 0) {
+        return hasDocumentationChanges && matchesProduct
       }
       // Если активен фильтр документации и версию и продукт, показываем документацию и версию и продукт
-      if (isDocumentationFilterActive && productFilters.length > 0 && versionFilters.length > 0) {
-        return matchesProduct && matchesVersion
+      if (isDocumentationOnlyFilterActive && productFilters.length > 0 && versionFilters.length > 0) {
+        return hasDocumentationChanges && matchesProduct && matchesVersion
       }
+
       // Если нет фильтра вернем все данные кроме документации
-      if (!isDocumentationFilterActive && productFilters.length === 0 && versionFilters.length === 0) {
+      if (!isDocumentationOnlyFilterActive && productFilters.length === 0 && versionFilters.length === 0) {
         return !hasDocumentationChanges
       }
       // Если активен фильтр версии, показываем только версию без документации
-      if (!isDocumentationFilterActive && productFilters.length === 0 && versionFilters.length > 0) {
+      if (!isDocumentationOnlyFilterActive && productFilters.length === 0 && versionFilters.length > 0) {
         return !hasDocumentationChanges && matchesVersion
       }
       // Если активен фильтр продукта, показываем только продукт без документации
-      if (!isDocumentationFilterActive && productFilters.length > 0 && versionFilters.length === 0) {
+      if (!isDocumentationOnlyFilterActive && productFilters.length > 0 && versionFilters.length === 0) {
         return !hasDocumentationChanges && matchesProduct
       }
       // Если активен фильтр версии и продукта, показываем только версию и продукт без документации
-      if (!isDocumentationFilterActive && productFilters.length > 0 && versionFilters.length > 0) {
+      if (!isDocumentationOnlyFilterActive && productFilters.length > 0 && versionFilters.length > 0) {
         return !hasDocumentationChanges && matchesProduct && matchesVersion
       }
 
     })
-    : data).filter(item => showOnlyGroupBuilds ? !!item.groupId : true);
+    : data
 
   const groupDataByDate = (data: Item[]): { date: string; items: Item[]; groupId: number; groupInfo?: Group }[] => {
     // Сначала сортируем данные по дате
@@ -279,7 +316,7 @@ function App() {
 
     return groupedData;
   };
-
+  
   const groupedData = groupDataByDate(filteredData);
 
   const fetchData = async (offset: number, limit: number = INITIAL_LIMIT) => {
@@ -653,16 +690,27 @@ function App() {
                 {searchValue && <div onClick={handleClearSearch} className='timeline__search-clear-btn'></div>}
               </div>
             </div>
-            <label htmlFor='switch' className='timeline__switch-label'>
+            <label htmlFor='groupOnly' className='timeline__switch-label'>
               <div className='timeline__switch'>
-                <input type='checkbox' className='timeline__switch-checkbox' name='switch' id='switch'
-                  checked={showOnlyGroupBuilds} onChange={e => setShowOnlyGroupBuilds(e.target.checked)} />
-                <label className='timeline__switch-body' htmlFor='switch'>
+                <input type='checkbox' className='timeline__switch-checkbox' name='groupOnly' id='groupOnly'
+                  checked={activeFilters.includes('groupOnly')} onChange={handleSwitchClick} />
+                <label className='timeline__switch-body' htmlFor='groupOnly'>
                   <span className='timeline__switch-inner'></span>
                   <span className='timeline__switch-switch'></span>
                 </label>
               </div>
               Показывать только накопительные обновления
+            </label>
+            <label htmlFor='documentationOnly' className='timeline__switch-label'>
+              <div className='timeline__switch'>
+                <input type='checkbox' className='timeline__switch-checkbox' name='documentationOnly' id='documentationOnly'
+                  checked={activeFilters.includes('documentationOnly')} onChange={handleSwitchClick} />
+                <label className='timeline__switch-body' htmlFor='documentationOnly'>
+                  <span className='timeline__switch-inner'></span>
+                  <span className='timeline__switch-switch'></span>
+                </label>
+              </div>
+              Показывать только изменения в документации
             </label>
             <div className="timeline__filter">
               {products?.map((product) => (
