@@ -1,0 +1,128 @@
+.timeline__section-title {
+	font-size: 1.2rem;
+	padding: 8px 13px;
+	font-weight: 500;
+	display: flex;
+	align-items: center;
+	cursor: pointer;
+}
+
+.timeline__section-title:hover {
+	background-color: rgba(208, 207, 207, 0.358);
+}
+
+.timeline__section-title-error::before {
+	background: url("../../icons/alert.svg") no-repeat center;
+	content: "";
+	width: 24px;
+	height: 24px;
+	margin-right: 20px;
+	vertical-align: middle;
+}
+
+.timeline__section-title-update::before {
+	background: url("../../icons/briefcase-outline.svg") no-repeat center;
+	content: "";
+	width: 24px;
+	height: 24px;
+	margin-right: 20px;
+	vertical-align: middle;
+}
+
+.timeline__section-title-api::before {
+	background: url("../../icons/api.svg") no-repeat center;
+	content: "";
+	display: inline-block;
+	width: 24px;
+	height: 24px;
+	margin-right: 20px;
+	vertical-align: middle;
+}
+
+.timeline__wrapper-icon {
+	display: flex;
+	align-items: center;
+	flex: 1;
+	justify-content: flex-end;
+}
+
+.timeline__icon-up,
+.timeline__icon-down {
+	width: 24px;
+	height: 24px;
+	margin-left: 8px;
+	background: url("../../icons/chevron-down.svg") no-repeat center;
+	transition: transform 0.3s ease;
+}
+
+.timeline__icon-up {
+	transform: rotate(180deg);
+}
+
+.timeline__section-content {
+	overflow: hidden;
+	transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+	max-height: 0;
+	opacity: 0;
+}
+
+.timeline__section-content.open {
+	max-height: 1000px;
+	opacity: 1;
+}
+
+.timeline__section-list {
+	padding: 0;
+}
+
+.timeline__change-item button {
+	background-color: #7555f9;
+	color: #fff;
+	font-size: 8px;
+	border: none;
+	height: 18px;
+	cursor: pointer;
+	line-height: 1.715em;
+	font-weight: 500;
+	padding: 4px 16px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 3px;
+	min-height: 22px;
+}
+
+.timeline__change {
+	display: flex;
+	font-size: 1rem;
+	padding: 16px;
+}
+
+.timeline__change-detailed {
+	transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+	max-height: 0;
+	opacity: 0;
+	overflow: hidden;
+}
+
+.timeline__change-detailed.visible {
+	max-height: 500px;
+	opacity: 1;
+}
+
+.timeline__change-detailed.hidden {
+	max-height: 0;
+	opacity: 0;
+}
+
+.timeline__change-title {
+	white-space: nowrap;
+	margin-right: 50px;
+	font-weight: 500;
+	font-style: italic;
+}
+
+.timeline__change-text {
+	margin-bottom: 5px;
+	word-break: break-word;
+}

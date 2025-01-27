@@ -1,0 +1,42 @@
+.timeline__group {
+	margin-bottom: 30px;
+	display: flex;
+}
+
+.timeline__group-header {
+	min-width: 120px;
+	position: relative;
+}
+
+.timeline__group-content {
+	flex: 1;
+	padding: 0 16px;
+	color: #333;
+	display: flex;
+	flex-direction: column;
+	z-index: 3;
+}
+
+.timeline__group-title {
+	font-size: 1.8rem;
+	font-weight: 700;
+	min-width: 350px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	border-bottom: rgba(0, 0, 0, 0.12) solid 1px;
+}
+
+.timeline__group-description {
+	font-size: 1.2rem;
+    padding: 8px 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+}
+
+.timeline__group-description * {
+	padding: 0;
+	margin: 0;
+	box-sizing: border-box;
+}

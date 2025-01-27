@@ -1,0 +1,56 @@
+.timeline__build {
+	margin-bottom: 30px;
+	display: flex;
+	position: relative;
+}
+
+.timeline__build-header {
+	min-width: 120px;
+	position: relative;
+}
+
+.timeline__build-content {
+	flex: 1;
+	padding: 0 16px;
+	color: #333;
+	display: flex;
+	flex-direction: column;
+	z-index: 3;
+}
+
+.timeline__build-title {
+	font-size: 1.5rem;
+	font-weight: 500;
+	min-width: 350px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	border-bottom: rgba(0, 0, 0, 0.12) solid 1px;
+}
+
+.timeline__build-title:hover {
+	background-color: rgba(208, 207, 207, 0.358);
+	cursor: pointer;
+}
+
+.timeline__build-toggle {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+}
+
+.timeline__build-toggle-wrapper {
+	margin-right: 12px;
+	height: 27px;
+	width: 27px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.timeline__expand-icon,
+.timeline__collapse-icon {
+	background: url("../../icons/unfold-more-horizontal.svg") no-repeat center;
+	height: 21px;
+	width: 21px;
+}

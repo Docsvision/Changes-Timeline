@@ -1,10 +1,11 @@
 
-import App from '@/App';
-import * as React from 'react';
-import * as ReactDOM from 'react-dom/client';
-import './index.css'
+import * as React from "react";
+import * as ReactDOM from "react-dom/client";
+import { App } from "@/App";
 
-const root = document.getElementById('app') as HTMLElement;
+import "./index.css"
+
+const root = document.getElementById("app") as HTMLElement;
 
 if (root) {
   ReactDOM.createRoot(root).render(

@@ -1,0 +1,40 @@
+
+.timeline__checkbox {
+	font-size: 1rem;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.timeline__checkbox--active {
+	background-color: #bbd02d;
+}
+
+.timeline__checkbox input[type="checkbox"] {
+	appearance: none;
+	width: 20px;
+	height: 20px;
+	border: 2px solid #ccc;
+	border-radius: 4px;
+	position: relative;
+	cursor: pointer;
+	display: inline-block;
+}
+
+.timeline__checkbox input[type="checkbox"]:checked {
+	background-color: #7555f9;
+	border-color: #7555f9;
+}
+
+.timeline__checkbox input[type="checkbox"]:checked::before {
+	content: "✔";
+	position: absolute;
+	left: 3px;
+	top: 0px;
+	color: white;
+}
+
+.timeline__checkbox:hover {
+	color: #7555f9;
+}
