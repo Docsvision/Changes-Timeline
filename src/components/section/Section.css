@@ -67,7 +67,7 @@
 }
 
 .timeline__section-content.open {
-	max-height: 1000px;
+	max-height: initial;
 	opacity: 1;
 }
 
@@ -106,7 +106,7 @@
 }
 
 .timeline__change-detailed.visible {
-	max-height: 500px;
+	max-height: initial;
 	opacity: 1;
 }
 
