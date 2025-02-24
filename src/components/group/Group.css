@@ -1,3 +1,7 @@
+:root {
+	--group-title-font-size: 1.5em;
+}
+
 .timeline__group {
 	margin-bottom: 30px;
 	display: flex;
@@ -17,7 +21,7 @@
 }
 
 .timeline__group-title {
-	font-size: 1.8rem;
+	font-size: var(--group-title-font-size);
 	font-weight: 700;
 	min-width: 350px;
 	display: flex;

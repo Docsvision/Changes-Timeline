@@ -1,10 +1,20 @@
+:root {
+	--rem: var(--rem-base, 17);
+	--main-font-size: var(--body-font-size, 1.0625em);
+	--main-font-size-desktop: var(--body-font-size--desktop, 1.125em);
+    --main-font-size-print: var(--body-font-size--print, 0.9375em);
+	--text-font-size: var(--doc-font-size, inherit);
+    --text-font-size-desktop: var(--doc-font-size--desktop, calc(17 / var(--rem)* 1rem));
+}
+
 html {
-	font-size: 18px;
+	font-size: var(--main-font-size);
 }
 
 #app {
 	font-family: "Roboto", sans-serif;
 	line-height: 1.5;
+	font-size: var(--text-font-size);
 	font-synthesis: none;
 	text-rendering: optimizeLegibility;
 	-webkit-font-smoothing: antialiased;
@@ -24,4 +34,20 @@ input {
 
 input:focus {
   border-bottom: 2px solid #bbd02d;
+}
+
+@media screen and (min-width: 1024px) {
+	html {
+	  font-size: var(--main-font-size-desktop);
+	}
+
+	#app {
+		font-size: var(--text-font-size-desktop);
+	}
+}
+
+@media print {
+	html {
+	  font-size: var(--main-font-size-print);
+	}
 }

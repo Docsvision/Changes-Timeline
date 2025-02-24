@@ -1,17 +1,23 @@
+:root {
+	--date-title-font-size: var(--text-font-size);
+	--date-title-font-size-desktop: var(--text-font-size-desktop);
+}
+
 .timeline__date-header {
 	min-width: 120px;
 	position: relative;
 }
 
 .timeline__date-title {
-	cursor: pointer;
-	height: 31px;
-	display: flex;
-	align-items: center;
 	position: absolute;
 	top: 2px;
 	left: -8px;
 	right: 0;
+	height: 31px;
+	display: flex;
+	align-items: center;
+	font-size: var(--date-title-font-size);
+	cursor: pointer;
 }
 
 .timeline__date-title:hover {
@@ -20,4 +26,10 @@
 
 .timeline__group-date {
 	top: 10px;
+}
+
+@media screen and (min-width: 1024px) {
+	.timeline__date-title {
+		font-size: var(--date-title-font-size-desktop);
+	}
 }
