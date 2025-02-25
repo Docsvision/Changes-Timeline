@@ -57,3 +57,8 @@
 	height: 21px;
 	width: 21px;
 }
+
+.timeline__build-list {
+	list-style-type: none;
+	padding-inline-start: 0;
+}

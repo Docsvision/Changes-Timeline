@@ -79,7 +79,8 @@
 }
 
 .timeline__section-list {
-	padding: 0;
+	list-style-type: none;
+	padding-inline-start: 0;
 }
 
 .timeline__change-build button {
