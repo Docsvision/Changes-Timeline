@@ -1,50 +1,51 @@
-# React + TypeScript + Vite
+# DV documentation
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Страничка таймлайна в онлайн-документации. Главная фича - поиск в иерархическом дереве и фильтрация результатов.
 
-Currently, two official plugins are available:
+### Технологии:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- React
+- TypeScript
+- Vite
 
-## Expanding the ESLint configuration
+### Ветки:
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- main - В реальной документации используется эта ветка.
 
-- Configure the top-level `parserOptions` property like this:
+### Установка и использование
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```
+npm install
+npm run dev
+npm run build
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+### Разработка внутри страницы документации
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+Клонировать репозитории:
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+- Antora-playbook https://github.com/Docsvision/antora-playbook/tree/dev-quick-build
+- Antora-ui https://github.com/Docsvision/antora-ui-default
+
+Установить все пакеты.
+
+Собрать UI бандл в репозитории Antora-ui согласно файлу readme.
+
+Собрать документацию и поднять http-server в репозитории Antora-playbook согласно файлу readme.
+
+В директории wwwroot в репозитории Antora-playbook на странице с текущим проектом (/timeline) открыть index.html файл. Заменить пути к файлам  `timeline.min.js` и `timeline.min.css` на локальные пути vite-сервера, `http://localhost:5173/vendor/patches.min.js` и `http://localhost:5173/vendor/patches.min.css`.
+
+Перед скриптом получения js файла необходимо так же добавить скрипт с импортом библиотеки `@react-refresh`, без этого код работать не будет, возможно исправят в следующих версиях.
+
 ```
+ <script type="module">
+    import RefreshRuntime from "http://localhost:5173/@react-refresh"
+    RefreshRuntime.injectIntoGlobalHook(window)
+    window.$RefreshReg$ = () => {}
+    window.$RefreshSig$ = () => (type) => type
+    window.__vite_plugin_react_preamble_installed__ = true
+  </script>
+```
+
+
+Если вы запускаете приложение не на стандартном 5173 порте, необходимо будет поменять его так же в настройках proxy файла `vite.config.ts`.

@@ -11,11 +11,12 @@
 .timeline__build-header {
 	min-width: 120px;
 	position: relative;
+	display: none;
 }
 
 .timeline__build-content {
 	flex: 1;
-	padding: 0 16px;
+	padding-left: 16px;
 	color: #333;
 	display: flex;
 	flex-direction: column;
@@ -24,7 +25,6 @@
 .timeline__build-title {
 	font-size: var(--build-title-font-size);
 	font-weight: 500;
-	min-width: 350px;
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
@@ -61,4 +61,20 @@
 .timeline__build-list {
 	list-style-type: none;
 	padding-inline-start: 0;
+}
+
+@media screen and (min-width: 600px) {
+	.timeline__build-title {
+		min-width: 350px;
+	}
+}
+
+@media screen and (min-width: 1024px) {
+	.timeline__build-header {
+		display: block;
+	}
+
+	.timeline__build-content {
+		padding: 0 16px;
+	}
 }

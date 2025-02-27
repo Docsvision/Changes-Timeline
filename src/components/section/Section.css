@@ -7,7 +7,7 @@
 
 .timeline__section-title {
 	font-size: var(--section-title-font-size);
-	padding: 8px 13px;
+	padding: 8px 0;
 	font-weight: 500;
 	display: flex;
 	align-items: center;
@@ -104,8 +104,9 @@
 
 .timeline__change {
 	display: flex;
+	flex-direction: column;
 	font-size: var(--changes-font-size);
-	padding: 16px;
+	padding: 16px 0;
 }
 
 .timeline__change-detailed {
@@ -127,7 +128,7 @@
 
 .timeline__change-title {
 	white-space: nowrap;
-	margin-right: 50px;
+	margin-right: 1rem;
 	font-weight: 500;
 	font-style: italic;
 }
@@ -139,6 +140,19 @@
 
 @media screen and (min-width: 1024px) {
 	.timeline__change {
+		flex-direction: row;
 		font-size: var(--changes-font-size-desktop);
+	}
+
+	.timeline__section-title {
+		padding: 8px 13px;
+	}
+
+	.timeline__change {
+		padding: 16px;
+	}
+
+	.timeline__change-title {
+		margin-right: 3.2rem;
 	}
 }
