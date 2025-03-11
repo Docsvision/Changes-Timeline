@@ -1,9 +1,14 @@
+:root {
+	--group-title-font-size: 1.5em;
+}
+
 .timeline__group {
 	margin-bottom: 30px;
 	display: flex;
 }
 
 .timeline__group-header {
+	display: none;
 	min-width: 120px;
 	position: relative;
 }
@@ -14,13 +19,11 @@
 	color: #333;
 	display: flex;
 	flex-direction: column;
-	z-index: 3;
 }
 
 .timeline__group-title {
-	font-size: 1.8rem;
+	font-size: var(--group-title-font-size);
 	font-weight: 700;
-	min-width: 350px;
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
@@ -39,4 +42,16 @@
 	padding: 0;
 	margin: 0;
 	box-sizing: border-box;
+}
+
+@media screen and (min-width: 600px) {
+	.timeline__group-title {
+		min-width: 350px;
+	}
+}
+
+@media screen and (min-width: 1024px) {
+	.timeline__group-header {
+		display: block;
+	}
 }

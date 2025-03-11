@@ -20,6 +20,8 @@ import { Checkbox } from "@/components/checkbox/Checkbox";
 
 import "./App.css";
 
+const WIDE_SCREEN_WIDTH = 1400;
+
 export function App() {
   const groupId = getGroupIdFromQuery();
   const hasScrolledRef = useRef(false);
@@ -51,9 +53,22 @@ export function App() {
 
   const setCheboxContainerHeight = useCallback((node: HTMLDivElement | null) => {
     if (!node) return;
-      const rect = node.getBoundingClientRect();
-      const heightInViewport = Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0);
-      node.style.height = `${heightInViewport}px`;
+
+    const observer = new ResizeObserver(([entry]) => {
+      const rect = entry.target.getBoundingClientRect();
+
+      if (window.innerWidth >= WIDE_SCREEN_WIDTH) {
+        const heightInViewport = Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0);
+        node.style.height = `${heightInViewport}px`;
+        return;
+      }
+
+      if (node.style.height && node.style.height !== "auto") {
+        node.style.height = "auto";
+      }
+    });
+
+    observer.observe(node);
   }, []);
 
   const scrollToGroup = useCallback((currentGroupId: number) => (element: HTMLDivElement) => {

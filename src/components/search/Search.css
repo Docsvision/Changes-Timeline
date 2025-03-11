@@ -1,3 +1,7 @@
+:root {
+	--search-input-font-size: calc(17 / var(--rem)* 1rem);
+	--search-input-font-size-desktop: calc(15.5 / var(--rem)* 1rem);
+}
 
 .timeline__search {
 	display: flex;
@@ -11,7 +15,7 @@
 .timeline__search-input {
 	width: 230px;
 	padding: 1px 25px;
-	font-size: 0.95rem;
+	font-size: var(--search-input-font-size);
 }
 
 .timeline__search-icon {
@@ -42,4 +46,10 @@
 
 .timeline__search-clear-btn:hover {
 	opacity: 1;
+}
+
+@media screen and (min-width: 1024px) {
+	.timeline__search-input {
+		font-size: var(--search-input-font-size-desktop);
+	}
 }

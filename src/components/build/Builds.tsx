@@ -31,7 +31,7 @@ export function Build(props: IBuildProps) {
                     </div>
                 </div>
                 <div className="timeline__build-text">
-                    <ul>
+                    <ul className="timeline__build-list">
                         {children}
                     </ul>
                 </div>
