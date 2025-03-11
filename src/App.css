@@ -8,13 +8,12 @@
 	display: flex;
 	flex-direction: column;
 	padding: 1rem;
-	/* overflow: hidden; */
 }
 
 .timeline__container {
 	display: flex;
 	flex-direction: column-reverse;
-	row-gap: 3rem;
+	row-gap: 2rem;
 }
 
 .timeline__header {
@@ -57,9 +56,6 @@
 }
 
 .timeline__filters {
-	position: sticky;
-	top: 156px;
-	margin-top: 18px;
 	padding-left: 20px;
 	display: flex;
 	flex-direction: column;
@@ -134,5 +130,10 @@ marker {
 
 	.timeline__sidebar {
 		min-width: 360px;
+	}
+
+	.timeline__filters {
+		position: sticky;
+		top: 265px;
 	}
 }
