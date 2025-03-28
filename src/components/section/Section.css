@@ -86,13 +86,11 @@
 .timeline__change-build button {
 	background-color: #7555f9;
 	color: #fff;
-	/* font-size: 8px; */
 	font-size: var(--build-button-font-size);
 	border: none;
 	height: 18px;
 	cursor: pointer;
 	line-height: 1;
-	/* line-height: 1.715em; */
 	font-weight: 500;
 	padding: 4px 16px;
 	display: flex;
