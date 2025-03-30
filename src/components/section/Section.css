@@ -114,6 +114,10 @@
 	overflow: hidden;
 }
 
+.timeline__change-detailed * {
+	font-size: var(--changes-font-size)!important;
+}
+
 .timeline__change-detailed.visible {
 	max-height: initial;
 	opacity: 1;
@@ -152,5 +156,9 @@
 
 	.timeline__change-title {
 		margin-right: 3.2rem;
+	}
+
+	.timeline__change-detailed * {
+		font-size: var(--changes-font-size-desktop)!important;
 	}
 }
