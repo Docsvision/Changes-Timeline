@@ -31,6 +31,8 @@
 		left: -8px;
 		right: 0;
 		font-size: var(--date-title-font-size-desktop);
+		z-index: 1;
+		width: fit-content;
 	}
 }
 

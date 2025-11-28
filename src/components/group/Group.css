@@ -21,6 +21,17 @@
 	flex-direction: column;
 }
 
+.timeline__group-title-wrapper {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+}
+
+.timeline__group-copy-link-button {
+	position: relative;
+	width: 42px;
+}
+
 .timeline__group-title {
 	font-size: var(--group-title-font-size);
 	font-weight: 700;
