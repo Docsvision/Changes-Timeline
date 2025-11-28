@@ -27,6 +27,8 @@ function getTypeDescription(type: number): string {
             return "api"; // Изменение в API
         case 6:
             return "update"; // Изменение в документации
+        case 7:
+            return "security"; // Безопасность
         default:
             return "update"; // Неизвестный тип
     };

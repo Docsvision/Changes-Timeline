@@ -46,6 +46,16 @@
 	vertical-align: middle;
 }
 
+.timeline__section-title-security::before {
+	background: url("../../icons/security.svg") no-repeat center;
+	content: "";
+	display: inline-block;
+	width: 24px;
+	height: 24px;
+	margin-right: 20px;
+	vertical-align: middle;
+}
+
 .timeline__wrapper-icon {
 	display: flex;
 	align-items: center;
