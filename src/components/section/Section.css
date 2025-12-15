@@ -86,13 +86,11 @@
 .timeline__change-build button {
 	background-color: #7555f9;
 	color: #fff;
-	/* font-size: 8px; */
 	font-size: var(--build-button-font-size);
 	border: none;
 	height: 18px;
 	cursor: pointer;
 	line-height: 1;
-	/* line-height: 1.715em; */
 	font-weight: 500;
 	padding: 4px 16px;
 	display: flex;
@@ -114,6 +112,10 @@
 	max-height: 0;
 	opacity: 0;
 	overflow: hidden;
+}
+
+.timeline__change-detailed * {
+	font-size: var(--changes-font-size)!important;
 }
 
 .timeline__change-detailed.visible {
@@ -154,5 +156,9 @@
 
 	.timeline__change-title {
 		margin-right: 3.2rem;
+	}
+
+	.timeline__change-detailed * {
+		font-size: var(--changes-font-size-desktop)!important;
 	}
 }

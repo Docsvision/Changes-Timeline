@@ -1,5 +1,5 @@
 :root {
-	--rem: var(--rem-base, 17);
+	--rem: var(--rem-base, 18);
 	--main-font-size: var(--body-font-size, 1.0625em);
 	--main-font-size-desktop: var(--body-font-size--desktop, 1.125em);
     --main-font-size-print: var(--body-font-size--print, 0.9375em);
