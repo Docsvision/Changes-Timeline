@@ -74,7 +74,7 @@ export function App() {
   const scrollToGroup = useCallback((currentGroupId: number) => (element: HTMLDivElement) => {
     if (!element || hasScrolledRef.current || !(groupId && +groupId === currentGroupId)) return;
 
-    element.scrollIntoView({ behavior: "smooth", block: "center" });
+    element.scrollIntoView({ behavior: "smooth", block: "start" });
     hasScrolledRef.current = true;
   }, []);
 

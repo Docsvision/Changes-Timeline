@@ -1,0 +1,64 @@
+:root {
+	--copy-link-button-tooltip-font-size: .6rem;
+}
+
+.timeline__copy-link-button {
+    position: absolute;
+    width: 42px;
+    height: 42px;
+    cursor: pointer;
+    background-color: inherit;
+    border: none;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: opacity .2s ease-in-out, transform .2s ease-in-out;
+}
+
+.timeline__copy-link-button:hover {
+    color: #7555f9;
+}
+
+.timeline__copy-link-button__tooltip {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    width: fit-content;
+    font-size: var(--copy-link-button-tooltip-font-size);
+    color: #fff;
+    background-color:#5d5d5d;
+    padding: 6px 8px;
+    text-wrap: nowrap;
+    cursor: default;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(5px);
+    transition: opacity .2s ease-in-out, transform .2s ease-in-out;
+    border-radius: 4px;
+}
+
+.timeline__copy-link-button__tooltip_visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+@media screen and (min-width: 700px) {
+	.timeline__copy-link-button__tooltip {
+        right: auto;
+        left: 50%;
+        transform: translateX(-50%);
+	}
+}
+
+@media screen and (min-width: 1024px) and (hover: hover) {
+	.timeline__copy-link-button {
+        opacity: 0;
+        pointer-events: none;
+	}
+
+    .timeline__copy-link-button_visible {
+        opacity: 1;
+        pointer-events: auto;
+    }
+}
