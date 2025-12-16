@@ -17,6 +17,7 @@ import { findIconIdByProductId } from "@/helpers/findIconIdByProductId";
 import { Search } from "@/components/search/Search";
 import { Switch } from "@/components/switch/Switch";
 import { Checkbox } from "@/components/checkbox/Checkbox";
+import { scrollToElement } from "@/helpers/scroll";
 
 import "./App.css";
 
@@ -74,7 +75,7 @@ export function App() {
   const scrollToGroup = useCallback((currentGroupId: number) => (element: HTMLDivElement) => {
     if (!element || hasScrolledRef.current || !(groupId && +groupId === currentGroupId)) return;
 
-    element.scrollIntoView({ behavior: "smooth", block: "start" });
+    scrollToElement(element)
     hasScrolledRef.current = true;
   }, []);
 
