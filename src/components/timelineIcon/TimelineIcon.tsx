@@ -6,19 +6,23 @@ export interface IIconType {
   paths: {}[];
 }
 
-const IconComponent = ({ viewBox, paths }: IIconType) => (
-  <svg viewBox={viewBox} width="100%" height="100%">
-    {paths.map((path, index) => (
-      <path key={index} {...path} />
-    ))}
-  </svg>
-);
-export const TimelineIcon = ({ iconId }: { iconId: string | undefined }) => {
-  const icon = icons.find(icon => icon.id === iconId);
+type IconProps = {
+  iconId: string | undefined;
+} & React.SVGProps<SVGSVGElement>;
+
+
+export const TimelineIcon = ({ iconId, ...svgProps }: IconProps) => {
+  const Svg = icons[iconId ?? ""];
+
+  if (!Svg) return null;
 
   return (
-    <>
-      {icon ? <IconComponent {...icon} /> : null}
-    </>
+    <Svg
+      width="100%"
+      height="100%"
+      aria-hidden
+      focusable={false}
+      {...svgProps}
+    />
   );
 };
