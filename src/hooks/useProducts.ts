@@ -39,7 +39,7 @@ export function getProductsMap(products: Product[]) {
 
     for (const product of products) {
         const {id, alias, version} = product;
-        const productVersion = version.startsWith("5") ? "5.5" : version;
+        const productVersion = getProductsMapVersion(version);
 
         if (!productsMap.products[alias]) productsMap.products[alias] = [];
         productsMap.products[alias].push(id);
@@ -49,4 +49,14 @@ export function getProductsMap(products: Product[]) {
     }
 
     return productsMap;
-}
+};
+
+export function getProductsMapVersion(version: string) {
+    switch(true) {
+        case version.startsWith("6"):
+            return "6";
+        case version.startsWith("5"):
+        default:
+            return "5.5";      
+    }
+};
