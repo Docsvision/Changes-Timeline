@@ -8,7 +8,7 @@ export const GROUP_ID_SEARCH_QUERY = "groupId";
 
 export const PRODUCT_VERSIONS: Record<string, string> = {
     "dv5": "5.5",
-    "dv6": "6.1",
+    "dv6": "6",
 };
 
 export const PATHNAME_PRODUCT_ABBREVIATE  = "dv";
