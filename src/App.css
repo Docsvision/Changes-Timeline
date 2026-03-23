@@ -103,7 +103,7 @@ marker {
 }
 
 .timeline__date-items.expanded {
-	max-height: 6000px;
+	max-height: none;
 	transition: max-height 2s ease, padding 0.5s ease;
 }
 
