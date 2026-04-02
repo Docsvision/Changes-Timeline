@@ -1,62 +1,48 @@
-export const scrollTargets =  [ null, document, document.body, document.scrollingElement, document.documentElement ]
+export function findScrollParent(el: HTMLElement): Element | Window {
+    let parent: HTMLElement | null = el.parentElement;
 
-export function getVerticalScrollPosition(scrollTarget: Element | Window) {
-    return scrollTarget === window
-        ? window.pageYOffset || window.scrollY || document.body.scrollTop || 0
-        : (scrollTarget as Element).scrollTop
-}
+    while (parent) {
+        const style = getComputedStyle(parent);
 
-export function animVerticalScrollTo(el: Element | Window, to: number, duration: number = 0 , prevTime: number = performance.now()) {
-    const pos = getVerticalScrollPosition(el);
+        const overflowY = style.overflowY;
 
-    if (duration <= 0) {
-        if (pos !== to) {
-            setScroll(el, to);
+        if (overflowY === "auto" || overflowY === "scroll") {
+            return parent;
         }
 
-        return;
+        parent = parent.parentElement;
     }
 
-    requestAnimationFrame(nowTime => {
-        const frameTime = nowTime - prevTime;
-        const newPos = pos + (to - pos) / Math.max(frameTime, duration) * frameTime;
-        setScroll(el, newPos);
-        if (newPos !== to) {
-            animVerticalScrollTo(el, to, duration - frameTime, nowTime);
-        }
-    });
+    return window;
 }
 
-export function setScroll(scrollTarget: Element | Window, offset: number) {
-    if (scrollTarget === window) {
-        window.scrollTo(window.pageXOffset || window.scrollX || document.body.scrollLeft || 0, offset);
-        return;
+function getOffset(el: HTMLElement, target: Element | Window): number {
+    if (target === window) {
+        return el.getBoundingClientRect().top + window.scrollY;
     }
 
-    (scrollTarget as Element).scrollTop = offset;
+    const parent = target as Element;
+
+    const parentRect = parent.getBoundingClientRect();
+    const elRect = el.getBoundingClientRect();
+
+    return elRect.top - parentRect.top + parent.scrollTop;
 }
-
-export function setVerticalScrollPosition(scrollTarget:Element | Window, offset: number, duration: number) {
-    if (duration) {
-        animVerticalScrollTo(scrollTarget, offset, duration);
-        return;
-    }
-
-    setScroll(scrollTarget, offset);
-}
-
-export function getScrollTarget(el: Element) {
-    const target = el.closest('.scroll,.scroll-y,.overflow-auto');
-
-    return scrollTargets.includes(target) ? window : target;
-}
-
 
 export function scrollToElement(el: HTMLElement) {
-    const target = getScrollTarget(el);
-    if (!target) return;
+    const target = findScrollParent(el);
 
-    const offset = el.getBoundingClientRect().top;
-    const duration = 1000;
-    setVerticalScrollPosition(target, offset, duration);
+    const offset = getOffset(el, target);
+
+    if (target === window) {
+        window.scrollTo({
+            top: offset,
+            behavior: "smooth"
+        });
+    } else {
+        (target as Element).scrollTo({
+            top: offset,
+            behavior: "smooth"
+        });
+    }
 }
