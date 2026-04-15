@@ -12,7 +12,6 @@ interface IGroupProps {
 export const Group = forwardRef<HTMLDivElement, IGroupProps>(function Group(props, ref) {
     const { icon, groupInfo } = props;
     const [visible, setVisible] = useState(false);
-    const buttonRef = useRef<HTMLButtonElement>(null);
     const titleRef = useRef<HTMLDivElement>(null);
 
     function handleMouseEnter() {
@@ -23,12 +22,9 @@ export const Group = forwardRef<HTMLDivElement, IGroupProps>(function Group(prop
         const related = event.relatedTarget as HTMLElement | null;
         setTimeout(() => {
             const titleEl = titleRef.current;
-            const buttonEl = buttonRef.current;
-
             const insideTitle = titleEl && related && titleEl.contains(related);
-            const insideButton = buttonEl && related && buttonEl.contains(related);
 
-            if (!insideTitle && !insideButton) {
+            if (!insideTitle) {
                 setVisible(false);
             }
         }, 200);
@@ -39,12 +35,12 @@ export const Group = forwardRef<HTMLDivElement, IGroupProps>(function Group(prop
             <div className="timeline__group-header"></div>
             {icon}
             <div className="timeline__group-content">
-                <div className="timeline__group-title-wrapper">
-                    <div className="timeline__group-title" ref={titleRef} onMouseLeave={handleMouseLeave} onMouseEnter={handleMouseEnter}>
+                <div className="timeline__group-title-wrapper" ref={titleRef} onMouseLeave={handleMouseLeave} onMouseEnter={handleMouseEnter}>
+                    <div className="timeline__group-title">
                         {groupInfo?.title ?? ""}
                     </div>
                     <div className="timeline__group-copy-link-button">
-                        <CopyLinkButton onMouseLeave={handleMouseLeave} ref={buttonRef} groupId={groupInfo?.id.toString() ?? ""} visible={visible} />
+                        <CopyLinkButton onMouseLeave={handleMouseLeave} groupId={groupInfo?.id.toString() ?? ""} visible={visible} />
                     </div>
                 </div>
                 <div className={"timeline__group-description"}

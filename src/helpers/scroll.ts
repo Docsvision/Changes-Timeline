@@ -1,4 +1,5 @@
 const TOOLBAR_SELECTOR = ".toolbar";
+const NAVBAR_SELECTOR = ".navbar";
 const BUFFER_OFFSET = 10;
 
 export function scrollToElement(el: HTMLElement) {
@@ -20,8 +21,10 @@ export function scrollToElement(el: HTMLElement) {
     }
 
     const toolbarEl = document.querySelector<HTMLElement>(TOOLBAR_SELECTOR);
+    const navbarEl = document.querySelector<HTMLElement>(NAVBAR_SELECTOR);
     const toolbarHeight = toolbarEl?.offsetHeight ?? 0;
-    const totalOffset = toolbarHeight + BUFFER_OFFSET;
+    const navbarHeight = navbarEl?.offsetHeight ?? 0;
+    const totalOffset = toolbarHeight + navbarHeight + BUFFER_OFFSET;
     
     if (target === window) {
         el.style.scrollMarginTop = `${totalOffset}px`;

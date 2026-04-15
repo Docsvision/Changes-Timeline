@@ -75,7 +75,7 @@ export function App() {
   const scrollToGroup = useCallback((currentGroupId: number) => (element: HTMLDivElement) => {
     if (!element || hasScrolledRef.current || !(groupId && +groupId === currentGroupId)) return;
 
-    scrollToElement(element)
+    scrollToElement(element.parentElement as HTMLElement);
     hasScrolledRef.current = true;
   }, []);
 
