@@ -1,5 +1,6 @@
 :root {
 	--group-title-font-size: 1.5em;
+	--group-description-font-size: 1.2rem;
 }
 
 .timeline__group {
@@ -42,18 +43,9 @@
 }
 
 .timeline__group-description {
-	font-size: 1.2rem;
+	font-size: var(--group-description-font-size);
     padding: 8px 13px;
     font-weight: 500;
-    display: flex;
-    align-items: center;
-	flex-wrap: wrap;
-}
-
-.timeline__group-description * {
-	padding: 0;
-	margin: 0;
-	box-sizing: border-box;
 }
 
 @media screen and (min-width: 600px) {
